@@ -1,2 +1,7 @@
-Project/Build
-Binary
+!Project/Build
+Project/Build/*
+!Project/Build/.gitkeep
+
+!Binary
+Binary/*
+!Binary/.gitkeep
