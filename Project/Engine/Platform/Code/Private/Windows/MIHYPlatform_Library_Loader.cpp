@@ -6,11 +6,24 @@
 namespace MIHYPlatform
 {
 
-    LibraryHandle load_library(const char* path){
+    Library_Handle load_library(const char* path){
 
-        MessageBox(NULL, path, TEXT("load_library"), MB_OK);
+        MessageBoxA(NULL, path, "load_library", MB_OK);
 
-        HMODULE dllHandle{LoadLibrary(path)};
+        HMODULE dllHandle{LoadLibraryA(path)};
+        if(dllHandle == NULL){
+            return nullptr;
+        }
+
+        return dllHandle;
+
+    }
+
+    Library_Handle load_library(const wchar_t* path){
+
+        MessageBoxW(NULL, path, L"load_library", MB_OK);
+
+        HMODULE dllHandle{LoadLibraryW(path)};
         if(dllHandle == NULL){
             return nullptr;
         }

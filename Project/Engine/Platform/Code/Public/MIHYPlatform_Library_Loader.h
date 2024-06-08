@@ -5,9 +5,10 @@ namespace MIHYPlatform
 {
 
 
-    using LibraryHandle = void*;
+    using Library_Handle = void*;
 
-    MIHYPLATFORM_API LibraryHandle load_library(const char* path);
+    MIHYPLATFORM_API Library_Handle load_library(const char* path);
+    MIHYPLATFORM_API Library_Handle load_library(const wchar_t* path);
 
 
 }
