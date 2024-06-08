@@ -1,7 +1,9 @@
-#include "MIHYModule_PCH.h"
-#include "MIHYModule_Manager.h"
+#include "MIHYCore_PCH.h"
+#include "MIHYCore_Module_Manager.h"
 
-bool MIHYModule::MIHYModule_Module_Container::insert(const std::string &name, const MIHYPlatform::Library_Handle &module)
+namespace MIHYCore::Module{
+
+bool MIHYCore_Module_Container::insert(const std::string &name, const MIHYPlatform::Library_Handle &module)
 {
 
     auto iter{m_module_umap.find(name)};
@@ -15,7 +17,7 @@ bool MIHYModule::MIHYModule_Module_Container::insert(const std::string &name, co
 
 }
 
-bool MIHYModule::MIHYModule_Module_Container::insert(const std::string &name, const std::wstring& module_path)
+bool MIHYCore_Module_Container::insert(const std::string &name, const std::wstring& module_path)
 {
 
     auto iter{m_module_umap.find(name)};
@@ -28,10 +30,12 @@ bool MIHYModule::MIHYModule_Module_Container::insert(const std::string &name, co
         return false;
     }
 
-    MIHYMODULE_MODULE module{};
+    MIHYCORE_MODULE module{};
     module.handle = module_handle;
     m_module_umap.emplace(name, module);
 
     return true;
+
+}
 
 }

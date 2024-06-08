@@ -5,11 +5,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef _MIHYMODULE_H_
-#define _MIHYMODULE_H_
+#ifndef _MIHYCORE_H_
+#define _MIHYCORE_H_
 
-#define MIHYMODULE_IMPORT
+#define MIHYCORE_IMPORT
 
-#include "MIHYModule_PCH.h"
+#include "MIHYCore_PCH.h"
+
 
 #endif
