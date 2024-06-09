@@ -1,6 +1,8 @@
 #ifndef _MIHYPLATFORM_PCH_H_
 #define _MIHYPLATFORM_PCH_H_
 
+#include "MIHYCommonHeader.h"
+
 #include "MIHYPlatform_API.h"
 
 #if defined(MIHYPLATFORM_IMPORT)
@@ -8,6 +10,5 @@
 #else
     #define MIHYPLATFORM_API MIHYPLATFORM_LIBRARY_SYMBOL_EXPORT_COMMAND
 #endif
-
 
 #endif

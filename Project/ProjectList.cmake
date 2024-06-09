@@ -11,8 +11,10 @@ set(MIHYCLIENT_PROJECT_NAME                             MIHYClient)
 set(MIHYCLIENT_DIRECTORY                                ${CMAKE_CURRENT_LIST_DIR}/Engine/Client)
 set(MIHYCLIENT_CODE_DIRECTORY                           ${MIHYCLIENT_DIRECTORY}/Code)
 
+set(MIHYCOMMONHEADER_DIRECTORY                          ${CMAKE_CURRENT_LIST_DIR}/Engine/CommonHeader)
 
 #include directory
+include_directories(${MIHYCOMMONHEADER_DIRECTORY})
 include_directories(${MIHYPLATFORM_CODE_DIRECTORY}/Public)
 include_directories(${MIHYCORE_CODE_DIRECTORY}/Public)
 include_directories(${MIHYCLIENT_CODE_DIRECTORY}/Public)

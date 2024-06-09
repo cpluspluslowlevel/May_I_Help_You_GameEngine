@@ -1,6 +1,8 @@
 #ifndef _MIHYCORE_PCH_H_
 #define _MIHYCORE_PCH_H_
 
+#include "MIHYCommonHeader.h"
+
 #include <unordered_map>
 #include <vector>
 #include <list>
