@@ -19,4 +19,12 @@ using Char16    = Int16;
 using Char      = Char8;
 using WChar     = Char16;
 
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <list>
+#include <string>
+#include <assert.h>
+
+
 #endif

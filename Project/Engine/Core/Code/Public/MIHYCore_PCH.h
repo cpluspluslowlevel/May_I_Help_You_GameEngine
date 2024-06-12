@@ -3,12 +3,6 @@
 
 #include "MIHYCommonHeader.h"
 
-#include <unordered_map>
-#include <vector>
-#include <list>
-#include <string>
-
-
 #include "MIHYPlatform_API.h"
 
 #if defined(MIHYCORE_IMPORT)

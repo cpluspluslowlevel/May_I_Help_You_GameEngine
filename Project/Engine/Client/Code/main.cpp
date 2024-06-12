@@ -1,14 +1,14 @@
 #include <iostream>
 
-#include "MIHYPlatform.h"
+
+#include "MIHYCore.h"
+#include "MIHYCore_DataStruct.h"
 #include "MIHYPlatform_Library_Loader.h"
 
 int main()
 {
 
-    auto test{MIHYPlatform::load_library("")};
-
-    std::cout << "Hello, World!" << std::endl;
+    MIHYCore::DataStruct::MIHYVector_UnitTest();
     
     return 0;
 

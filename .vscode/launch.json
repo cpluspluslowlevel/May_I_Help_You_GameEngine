@@ -1,2 +1,15 @@
 {
+    "gdb": {
+        "name": "GDB",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/your_program",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": true,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/path/to/gdb"
+    }
 }
