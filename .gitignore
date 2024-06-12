@@ -5,3 +5,7 @@ Project/Build/*
 !Binary
 Binary/*
 !Binary/.gitkeep
+
+!External
+External/*
+!External/.gitkeep
