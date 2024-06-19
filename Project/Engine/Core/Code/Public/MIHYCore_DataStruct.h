@@ -18,34 +18,66 @@ namespace MIHYCore{
             UInt64      m_size;
 
         public:
+
+            /// @brief 생성자
+            /// @param capacity 초기 메모리의 크기 
             MIHYVector(UInt64 capacity) : m_capacity{capacity}, m_size{0}{
                 m_memory = new Type[m_capacity];
             }
-            MIHYVector(const MIHYVector& other) : m_capacity{other.m_capacity}, m_size{other.m_size}{
+
+            /// @brief 생성자
+            /// @param capacity 초기 메모리의 크기
+            /// @param list 초기화 리스트
+            MIHYVector(UInt64 capacity, std::initializer_list<Type> list) : m_capacity{capacity}, m_size{0}{
+                
+                if(m_capacity < list.size()){
+                    reserve_capacity(list.size());
+                }
+
+                auto iter_end{list.end()};
+                for(auto iter{list.begin()}; iter != iter_end; ++iter){
+                    m_memory[m_size++] = *iter;
+                }
+                m_size = list.size();
+
+            }
+
+            /// @brief 복사 생성자
+            /// @param lvalue 복사 대상
+            MIHYVector(const MIHYVector& lvalue) : m_capacity{lvalue.m_capacity}, m_size{lvalue.m_size}{
                 m_memory = new Type[m_capacity];
                 for (UInt64 i = 0; i < m_size; i++) {
-                    m_memory[i] = other.m_memory[i];
+                    m_memory[i] = lvalue.m_memory[i];
                 }
             }
-            MIHYVector(MIHYVector&& other) noexcept : m_capacity{other.m_capacity}, m_size{other.m_size}, m_memory{other.m_memory}{
-                other.m_capacity    = 0;
-                other.m_size        = 0;
-                other.m_memory      = nullptr;
+
+            /// @brief 이동 생성자
+            /// @param rvalue 이동 대상
+            MIHYVector(MIHYVector&& rvalue) noexcept : m_capacity{rvalue.m_capacity}, m_size{rvalue.m_size}, m_memory{rvalue.m_memory}{
+                rvalue.m_capacity    = 0;
+                rvalue.m_size        = 0;
+                rvalue.m_memory      = nullptr;
             }
+
+            /// @brief 소멸자
             ~MIHYVector(){
                 delete[] m_memory;
             }
-            MIHYVector& operator=(const MIHYVector& other){
 
-                if (this != &other) {
+            /// @brief 복사 대입 연산자
+            /// @param lvalue 복사 대상
+            /// @return 스스로의 참조
+            MIHYVector& operator=(const MIHYVector& lvalue){
+
+                if (this != &lvalue) {
                     
                     delete[] m_memory;
                     
-                    m_capacity = other.m_capacity;
-                    m_size     = other.m_size;
+                    m_capacity = lvalue.m_capacity;
+                    m_size     = lvalue.m_size;
                     m_memory   = new Type[m_capacity];
                     for (UInt64 i = 0; i < m_size; i++) {
-                        m_memory[i] = other.m_memory[i];
+                        m_memory[i] = lvalue.m_memory[i];
                     }
 
                 }
@@ -53,19 +85,23 @@ namespace MIHYCore{
                 return *this;
 
             }
-            MIHYVector& operator=(MIHYVector&& other) noexcept {
 
-                if (this != &other) {
+            /// @brief 이동 대입 연산자
+            /// @param rvalue 이동 대상 
+            /// @return 스스로의 참조
+            MIHYVector& operator=(MIHYVector&& rvalue) noexcept{
+
+                if (this != &rvalue) {
 
                     delete[] m_memory;
 
-                    m_capacity = other.m_capacity;
-                    m_size     = other.m_size;
-                    m_memory   = other.m_memory;
+                    m_capacity = rvalue.m_capacity;
+                    m_size     = rvalue.m_size;
+                    m_memory   = rvalue.m_memory;
 
-                    other.m_capacity    = 0;
-                    other.m_size        = 0;
-                    other.m_memory      = nullptr;
+                    rvalue.m_capacity    = 0;
+                    rvalue.m_size        = 0;
+                    rvalue.m_memory      = nullptr;
 
                 }
 
@@ -94,6 +130,23 @@ namespace MIHYCore{
                 }
 
                 m_memory[m_size++] = std::move(rvalue);
+
+            }
+
+            /// @brief 뒤에 원소를 추가합니다.
+            /// @param list 추가할 원소의 초기화 리스트
+            void push_back(std::initializer_list<Type> list){
+
+                //메모리가 부족하면 늘립니다.
+                if(m_size + list.size() > m_capacity){
+                    reserve_capacity(m_size + list.size());
+                }
+
+                //모든 원소를 복사합니다.
+                auto iter_end{list.end()};
+                for(auto iter{list.begin()}; iter != iter_end; ++iter){
+                    m_memory[m_size++] = *iter;
+                }
 
             }
 

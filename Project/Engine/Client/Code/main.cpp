@@ -8,7 +8,10 @@
 int main()
 {
 
+    std::cout << "Hello World!" << std::endl;
+
     MIHYCore::DataStruct::MIHYVector_UnitTest();
+
     
     return 0;
 

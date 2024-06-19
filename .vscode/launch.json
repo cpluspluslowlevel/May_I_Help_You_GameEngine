@@ -1,15 +1,23 @@
 {
-    "gdb": {
-        "name": "GDB",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/build/your_program",
-        "args": [],
-        "stopAtEntry": false,
-        "cwd": "${workspaceFolder}",
-        "environment": [],
-        "externalConsole": true,
-        "MIMode": "gdb",
-        "miDebuggerPath": "/path/to/gdb"
-    }
+
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Debug Client",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Binary/Debug/MIHYClient.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "preLaunchTask": "MIHY_Build_Debug"
+        },
+
+        
+
+    ]
+
 }
