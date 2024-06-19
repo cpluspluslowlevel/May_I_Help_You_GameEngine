@@ -13,12 +13,6 @@ namespace MIHYCore{
 #define VECTOR_PRINT(v) std::cout << "Capacity: " << v.get_capacity() << std::endl; for(UInt32 i = 0; i < v.get_size(); ++i) std::cout << v[i] << " "; std::cout << std::endl;
         using V = MIHYVector<UInt32>;
 
-        {//clear
-            V v{2, {0, 1, 2}};
-            v.clear();
-            assert(v.get_size() == 0);
-        }
-
         {//get_capacity
             V v{2};
             assert(v.get_capacity() == 2);
@@ -29,47 +23,53 @@ namespace MIHYCore{
             assert(v.get_size() == 3);
         }
 
+        {//clear
+            V v{2, {0, 1, 2}};
+            assert(v.get_size() == 3);
+            v.clear();
+            assert(v.get_size() == 0);
+        }
+
         {//operator[]
             V v{2, {0, 1, 2}};
             assert(v[0] == 0 && v[1] == 1 && v[2] == 2);
         }
 
         //생성자
-        // {   V v{10};   assert(v.get_capacity() == 10);  }
+        {   V v{10};   assert(v.get_capacity() == 10);  }
 
-        // {//생성자(초기화 리스트)
-        //     V v{5, {0, 1, 2}};
-        //     assert(v.get_capacity() == 5 && v.get_size() == 3 &&
-        //            v[0] == 0 && v[1] == 1 && v[2] == 2);
-        // };
+        {//생성자(초기화 리스트)
+            V v{5, {0, 1, 2}};
+            assert(v.get_capacity() == 5 && v.get_size() == 3 &&
+                   v[0] == 0 && v[1] == 1 && v[2] == 2);
+        };
 
-        // {//생성자(초기화 리스트, 시작 크기보다 많은 원소가 들어올 경우)
-        //     V v{2, {0, 1, 2}};
-        //     assert(v.get_capacity() > 2 && v.get_size() == 3 &&
-        //            v[0] == 0 && v[1] == 1 && v[2] == 2);
-        // };
-        
-        // {//복사 생성자
-        //     V o{5, {0, 1, 2}};
-        //     V v{o};
-        //     assert(o.get_capacity() == 5 && o.get_size() == 3 &&              //원본이 변하지 않았는지 확인.
-        //            o[0] == 0 && o[1] == 1 && o[2] == 2 &&
-        //            v.get_capacity() == 5 && v.get_size() == 3 &&
-        //            v[0] == 0 && v[1] == 1 && v[2] == 2);
-        // }
+        {//생성자(초기화 리스트, 시작 크기보다 많은 원소가 들어올 경우)
+            V v{2, {0, 1, 2}};
+            assert(v.get_capacity() > 2 && v.get_size() == 3 &&
+                   v[0] == 0 && v[1] == 1 && v[2] == 2);
+        };
+        {//복사 생성자
+            V o{5, {0, 1, 2}};
+            V v{o};
+            assert(o.get_capacity() == 5 && o.get_size() == 3 &&              //원본이 변하지 않았는지 확인.
+                   o[0] == 0 && o[1] == 1 && o[2] == 2 &&
+                   v.get_capacity() == 5 && v.get_size() == 3 &&
+                   v[0] == 0 && v[1] == 1 && v[2] == 2);
+        }
 
-        // {//이동 생성자
-        //     V o{5, {0, 1, 2}}
-        //     V v{std::move(v0)}; 
-        //     assert(v.get_capacity() == 5 && v.get_size() == 3 &&
-        //            v[0] == 0 && v[1] == 1 && v[2] == 2 &&
-        //            o.get_size() == 0);                                         //이동 후 원본이 비어있는지 확인.
+        {//이동 생성자
+            V o{5, {0, 1, 2}};
+            V v{std::move(o)}; 
+            assert(v.get_capacity() == 5 && v.get_size() == 3 &&
+                   v[0] == 0 && v[1] == 1 && v[2] == 2 &&
+                   o.get_size() == 0);                                         //이동 후 원본이 비어있는지 확인.
 
-        //     o.push_back({3, 4, 5});                                                //이동 후 원본에 추가해도 정상 작동하는지 확인.
-        //     assert(o.get_size() == 3 && o[0] == 3 && o[1] == 4 && o[2] == 5);
-        //     assert(v.get_capacity() == 5 && v.get_size() == 3 &&                   //이동 후 두 객체가 같은 메모리를 공유하지 않는지 확인.
-        //            v[0] == 0 && v[1] == 1 && v[2] == 2);
-        // }
+            o.push_back({3, 4, 5});                                                //이동 후 원본에 추가해도 정상 작동하는지 확인.
+            assert(o.get_size() == 3 && o[0] == 3 && o[1] == 4 && o[2] == 5);
+            assert(v.get_capacity() == 5 && v.get_size() == 3 &&                   //이동 후 두 객체가 같은 메모리를 공유하지 않는지 확인.
+                   v[0] == 0 && v[1] == 1 && v[2] == 2);
+        }
 
         // {//대입
         //     V o{5, {0, 1, 2}};

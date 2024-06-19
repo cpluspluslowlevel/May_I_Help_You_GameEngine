@@ -20,18 +20,27 @@ namespace MIHYCore{
         public:
 
             /// @brief 생성자
-            /// @param capacity 초기 메모리의 크기 
+            /// @param capacity 초기 메모리의 크기 0을 입력하면 임의의 크기로 초기화됩니다.
             MIHYVector(UInt64 capacity) : m_capacity{capacity}, m_size{0}{
+                if(m_capacity == 0){
+                    m_capacity = 2;
+                }
                 m_memory = new Type[m_capacity];
             }
 
             /// @brief 생성자
-            /// @param capacity 초기 메모리의 크기
+            /// @param capacity 초기 메모리의 크기 0을 입력하면 임의의 크기로 초기화됩니다.
             /// @param list 초기화 리스트
-            MIHYVector(UInt64 capacity, std::initializer_list<Type> list) : m_capacity{capacity}, m_size{0}{
+            MIHYVector(UInt64 capacity, std::initializer_list<Type> list) : m_memory{nullptr}, m_capacity{capacity}, m_size{0}{
+
+                if(m_capacity == 0){
+                    m_capacity = 2;
+                }
                 
                 if(m_capacity < list.size()){
                     reserve_capacity(list.size());
+                }else{
+                    m_memory = new Type[m_capacity];
                 }
 
                 auto iter_end{list.end()};
@@ -53,7 +62,7 @@ namespace MIHYCore{
 
             /// @brief 이동 생성자
             /// @param rvalue 이동 대상
-            MIHYVector(MIHYVector&& rvalue) noexcept : m_capacity{rvalue.m_capacity}, m_size{rvalue.m_size}, m_memory{rvalue.m_memory}{
+            MIHYVector(MIHYVector&& rvalue) noexcept : m_memory{rvalue.m_memory}, m_capacity{rvalue.m_capacity}, m_size{rvalue.m_size}{
                 rvalue.m_capacity    = 0;
                 rvalue.m_size        = 0;
                 rvalue.m_memory      = nullptr;
@@ -113,8 +122,9 @@ namespace MIHYCore{
             /// @param lvalue 복사할 데이터
             void push_back(const Type& lvalue){
 
+                //메모리가 부족하면 늘립니다.
                 if(m_size == m_capacity){
-                    expand_capacity();
+                    reserve_capacity(m_size + 1);
                 }
 
                 m_memory[m_size++] = lvalue;
@@ -125,8 +135,9 @@ namespace MIHYCore{
             /// @param value 이동할 데이터
             void push_back(Type&& rvalue){
 
+                //메모리가 부족하면 늘립니다.
                 if(m_size == m_capacity){
-                    expand_capacity();
+                    reserve_capacity(m_size + 1);
                 }
 
                 m_memory[m_size++] = std::move(rvalue);
@@ -162,18 +173,6 @@ namespace MIHYCore{
                 m_size = 0;
             }
 
-            /// @brief 현재 메모리의 보관 가능한 원소의 개수를 반환합니다.
-            /// @return m_capacity 현재 메모리의 보관 가능한 원소의 개수
-            UInt64 get_capacity() const{
-                return m_capacity;
-            }
-
-            /// @brief 현재 원소의 개수를 반환합니다.
-            /// @return 현재 원소의 개수
-            UInt64 get_size() const{
-                return m_size;
-            }
-
             /// @brief 메모리를 미리 할당합니다.
             /// @details approximated_capacity수치를 기반으로 적당한 크기의 메모리를 미리 할당합니다. approximated_capacity보다 큰 크기의 메모리가 할당되나 정확한 크기는 아닙니다. 
             ///          만약 approximated_capacity가 현재 메모리의 크기보다 작다면 아무런 작업을 하지 않습니다.
@@ -183,6 +182,13 @@ namespace MIHYCore{
 
                 if(approximated_capacity <= m_capacity){
                     return;
+                }
+
+                //특정 벡터가 다른 벡터에 본인의 데이터를 전해주면(rvalue) 본인은 빈 벡터가 됩니다.
+                //그 후 빈 벡터를 다시 사용하려고 할 때 무한 루프가 발생하지 않도록 최소 크기로 지정합니다.
+                //m_memory가 nullptr로 남아있긴 하지만 delete는 null safe하므로 문제가 되지 않습니다.
+                if(m_capacity == 0){
+                    m_capacity = 2;
                 }
 
                 while(m_capacity < approximated_capacity){
@@ -212,6 +218,31 @@ namespace MIHYCore{
 
             }
 
+
+
+
+            /// @brief 현재 메모리를 반환합니다. 벡터의 크기가 변경되면 메모리가 해제될 수 있습니다.
+            /// @return 메모리의 주소
+            Type* get_memory(){
+                return m_memory;
+            }
+
+            /// @brief 현재 메모리의 보관 가능한 원소의 개수를 반환합니다.
+            /// @return m_capacity 현재 메모리의 보관 가능한 원소의 개수
+            UInt64 get_capacity() const{
+                return m_capacity;
+            }
+
+            /// @brief 현재 원소의 개수를 반환합니다.
+            /// @return 현재 원소의 개수
+            UInt64 get_size() const{
+                return m_size;
+            }
+
+
+
+
+
             /// @brief 배열 형식으로 원소에 접근합니다.
             /// @param index 배열 인덱스
             /// @return 원소에 대한 레퍼런스
@@ -231,7 +262,7 @@ namespace MIHYCore{
 
             /// @brief 현재 메모리의 크기를 확장합니다.
             void expand_capacity(){
-                reserve_capacity(m_capacity * 2);
+                m_capacity = m_capacity * 2;
             }
 
         };

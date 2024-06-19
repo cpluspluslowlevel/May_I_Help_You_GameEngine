@@ -12,11 +12,9 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": true,
+            "console": "externalTerminal",
             "preLaunchTask": "MIHY_Build_Debug"
         },
-
-        
 
     ]
 
