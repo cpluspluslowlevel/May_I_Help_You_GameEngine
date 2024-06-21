@@ -11,6 +11,16 @@ namespace MIHYCore{
         ///          메모리를 할당할 때 모든 메모리가 복사 또는 이동하는 작업이 수반되므로 빈번한 메모리 할당이 발생하지 않도록 주의해야 합니다. 크기가 예상되면 reserve_capacity를 사용하여 미리 큰 메모리를 할당하는 것이 좋습니다.
         template <typename Type>
         class MIHYVector{
+        public:
+
+            class RIterator;
+            class CRIterator;
+
+            using Iterator                  = Type*;
+            using Const_Iterator            = const Type*;
+            using Reverse_Iterator          = RIterator;
+            using Const_Reverse_Iterator    = const CRIterator;
+
         private:
 
             Type*       m_memory;
@@ -161,6 +171,22 @@ namespace MIHYCore{
 
             }
 
+            void push_front(const Type& lvalue){
+
+                //메모리가 부족하면 늘립니다.
+                if(m_size == m_capacity){
+                    reserve_capacity(m_size + 1);
+                }
+
+                for(UInt64 i = m_size; i > 0; --i){
+                    m_memory[i] = m_memory[i - 1];
+                }
+
+                m_memory[0] = lvalue;
+                ++m_size;
+
+            }
+
             /// @brief 마지막 원소를 제거합니다.
             void pop_back(){
                 if(m_size > 0){
@@ -220,6 +246,55 @@ namespace MIHYCore{
 
 
 
+            /// @brief 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return 첫 요소를 가리키는 반복자.
+            Iterator begin(){
+                return m_memory;
+            }
+
+            /// @brief 반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return 반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Iterator end(){
+                return m_memory + m_size;
+            }
+
+            /// @brief 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return 첫 요소를 가리키는 반복자.
+            Const_Iterator cbegin() const{
+                return m_memory;
+            }
+
+            /// @brief 반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return 반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Const_Iterator cend() const{
+                return m_memory + m_size;
+            }
+
+            /// @brief 역순으로 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return 첫 요소를 가리키는 반복자.
+            Reverse_Iterator rbegin(){
+                return Reverse_Iterator{m_memory + m_size - 1};
+            }
+
+            /// @brief 반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return 반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Reverse_Iterator rend(){
+                return Reverse_Iterator{m_memory - 1};
+            }
+
+            /// @brief 역순으로 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return 첫 요소를 가리키는 반복자.
+            Const_Reverse_Iterator crbegin() const{
+                return Const_Reverse_Iterator{m_memory + m_size - 1};
+            }
+
+            /// @brief 반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return 반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Const_Reverse_Iterator crend() const{
+                return Const_Reverse_Iterator{m_memory - 1};
+            }
+
+
 
             /// @brief 현재 메모리를 반환합니다. 벡터의 크기가 변경되면 메모리가 해제될 수 있습니다.
             /// @return 메모리의 주소
@@ -267,8 +342,293 @@ namespace MIHYCore{
 
         };
 
+
+        /// @brief 벡터의 역방향 반복자입니다.
+        /// @tparam Type 벡터의 원소 타입
+        template<typename Type>
+        class MIHYVector<Type>::RIterator{
+        private:
+
+            Type* m_pointer;
+
+        public:
+
+            /// @brief 복사 생성자입니다.
+            /// @param lvalue 복사 대상
+            RIterator(const RIterator& lvalue) : m_pointer{lvalue.m_pointer}{}
+
+            /// @brief 이동 생성자입니다.
+            /// @param rvalue 
+            RIterator(RIterator&& rvalue) noexcept : m_pointer{rvalue.m_pointer}{}
+
+            /// @brief 복사 대입 연산자입니다.
+            /// @param lvalue 복사 대상
+            /// @return 스스로의 참조
+            RIterator& operator=(const RIterator& lvalue){
+                m_pointer = lvalue.m_pointer;
+                return *this;
+            }
+
+            /// @brief 이동 대입 연산자입니다.
+            /// @param rvalue 이동 대상
+            /// @return 스스로의 참조
+            RIterator& operator=(RIterator&& rvalue) noexcept{
+                m_pointer = rvalue.m_pointer;
+                return *this;
+            }
+
+            /// @brief 역참조 연산자입니다.
+            /// @return 역참조된 값
+            Type* operator->(){
+                return m_pointer;
+            }
+
+            /// @brief 역참조 연산자입니다.
+            /// @return 역참조된 값
+            const Type* operator->() const{
+                return m_pointer;
+            }
+
+            /// @brief 역참조 연산자입니다.
+            /// @return 역참조된 값
+            Type& operator*(){
+                return *m_pointer;
+            }
+
+            /// @brief 역참조 연산자입니다.
+            /// @return 역참조된 값
+            const Type& operator*() const{
+                return *m_pointer;
+            }
+
+            /// @brief 다음 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @return 스스로의 참조
+            RIterator& operator++(){
+                --m_pointer;
+                return *this;
+            }
+
+            /// @brief 다음 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param 후위 증가 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            RIterator operator++(int){
+                RIterator temp{*this};
+                --m_pointer;
+                return temp;
+            }
+
+            /// @brief 이전 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @return 스스로의 참조
+            RIterator& operator--(){
+                ++m_pointer;
+                return *this;
+            }
+
+            /// @brief 이전 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param 후위 감소 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            RIterator operator--(int){
+                RIterator temp{*this};
+                ++m_pointer;
+                return temp;
+            }
+
+            /// @brief 다음 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return 스스로의 참조
+            RIterator& operator+=(UInt64 offset){
+                m_pointer -= offset;
+                return *this;
+            }
+
+            /// @brief 다음 원소로 이동한 반복자를 반환합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return offset만큼 이동한 위치의 새로운 반복자
+            RIterator operator+(UInt64 offset) const{
+                return RIterator{m_pointer - offset};
+            }
+
+            /// @brief 이전 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return 스스로의 참조
+            RIterator& operator-=(UInt64 offset){
+                m_pointer += offset;
+                return *this;
+            }
+
+            /// @brief 이전 원소로 이동한 반복자를 반환합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return offset만큼 이동한 위치의 새로운 반복자
+            RIterator operator-(UInt64 offset) const{
+                return RIterator{m_pointer + offset};
+            }
+
+            bool operator==(const RIterator& other) const{
+                return m_pointer == other.m_pointer;
+            }
+
+            bool operator!=(const RIterator& other) const{
+                return m_pointer != other.m_pointer;
+            }
+
+        private:
+
+            /// @brief 내부적으로 사용하는 생성자 입니다. 벡터의 메모리 주소를 받아 저장합니다.
+            /// @param pointer 벡터의 메모리
+            RIterator(Type* pointer) : m_pointer{pointer}{}
+
+            friend class MIHYVector<Type>;
+
+        };
+
+        /// @brief 벡터의 역방향 반복자입니다.
+        /// @tparam Type 벡터의 원소 타입
+        template<typename Type>
+        class MIHYVector<Type>::CRIterator{
+        private:
+
+            Type* m_pointer;
+
+        public:
+
+            /// @brief 복사 생성자입니다.
+            /// @param lvalue 복사 대상
+            CRIterator(const CRIterator& lvalue) : m_pointer{lvalue.m_pointer}{}
+
+            /// @brief 이동 생성자입니다.
+            /// @param rvalue 
+            CRIterator(CRIterator&& rvalue) noexcept : m_pointer{rvalue.m_pointer}{}
+
+            /// @brief 복사 대입 연산자입니다.
+            /// @param lvalue 복사 대상
+            /// @return 스스로의 참조
+            CRIterator& operator=(const CRIterator& lvalue){
+                m_pointer = lvalue.m_pointer;
+                return *this;
+            }
+
+            /// @brief 이동 대입 연산자입니다.
+            /// @param rvalue 이동 대상
+            /// @return 스스로의 참조
+            CRIterator& operator=(CRIterator&& rvalue) noexcept{
+                m_pointer = rvalue.m_pointer;
+                return *this;
+            }
+
+
+            /// @brief 역참조 연산자입니다.
+            /// @return 역참조된 값
+            const Type* operator->() const{
+                return m_pointer;
+            }
+
+            /// @brief 역참조 연산자입니다.
+            /// @return 역참조된 값
+            const Type& operator*() const{
+                return *m_pointer;
+            }
+
+            /// @brief 다음 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @return 스스로의 참조
+            CRIterator& operator++(){
+                --m_pointer;
+                return *this;
+            }
+
+            /// @brief 다음 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param 후위 증가 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            CRIterator operator++(int){
+                CRIterator temp{*this};
+                --m_pointer;
+                return temp;
+            }
+
+            /// @brief 이전 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @return 스스로의 참조
+            CRIterator& operator--(){
+                ++m_pointer;
+                return *this;
+            }
+
+            /// @brief 이전 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param 후위 감소 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            CRIterator operator--(int){
+                CRIterator temp{*this};
+                ++m_pointer;
+                return temp;
+            }
+
+            /// @brief 다음 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return 스스로의 참조
+            CRIterator& operator+=(UInt64 offset){
+                m_pointer -= offset;
+                return *this;
+            }
+
+            /// @brief 다음 원소로 이동한 반복자를 반환합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return offset만큼 이동한 위치의 새로운 반복자
+            CRIterator operator+(UInt64 offset) const{
+                return CRIterator{m_pointer - offset};
+            }
+
+            /// @brief 이전 원소로 이동합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return 스스로의 참조
+            CRIterator& operator-=(UInt64 offset){
+                m_pointer += offset;
+                return *this;
+            }
+
+            /// @brief 이전 원소로 이동한 반복자를 반환합니다. 역방향으로 이동합니다.
+            /// @param offset 이동할 원소의 개수
+            /// @return offset만큼 이동한 위치의 새로운 반복자
+            CRIterator operator-(UInt64 offset) const{
+                return CRIterator{m_pointer + offset};
+            }
+
+            bool operator==(const CRIterator& other) const{
+                return m_pointer == other.m_pointer;
+            }
+
+            bool operator!=(const CRIterator& other) const{
+                return m_pointer != other.m_pointer;
+            }
+
+        private:
+
+            /// @brief 내부적으로 사용하는 생성자 입니다. 벡터의 메모리 주소를 받아 저장합니다.
+            /// @param pointer 벡터의 메모리
+            CRIterator(Type* pointer) : m_pointer{pointer}{}
+
+            friend class MIHYVector<Type>;
+
+        };
+
         //Unit test
         MIHYCORE_API std::string MIHYVector_UnitTest();
+
+        template<typename Container>
+        class MIHYIterator_ForEach_Reverse{
+        private:
+
+            Container& m_container;
+
+        public:
+            MIHYIterator_ForEach_Reverse(Container& container) : m_container{container}{}
+
+            Container::Reverse_Iterator begin(){
+                return m_container.rbegin();
+            }
+
+            Container::Reverse_Iterator end(){
+                return m_container.rend();
+            }
+
+        };
 
     }
 }
