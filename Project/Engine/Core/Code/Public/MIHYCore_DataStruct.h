@@ -166,7 +166,7 @@ namespace MIHYCore{
                 //모든 원소를 복사합니다.
                 auto iter_end{list.end()};
                 for(auto iter{list.begin()}; iter != iter_end; ++iter){
-                    m_memory[m_size++] = *iter;
+                    m_memory[m_size++] = std::move(*iter);
                 }
 
             }
@@ -175,15 +175,82 @@ namespace MIHYCore{
 
                 //메모리가 부족하면 늘립니다.
                 if(m_size == m_capacity){
-                    reserve_capacity(m_size + 1);
-                }
 
-                for(UInt64 i = m_size; i > 0; --i){
-                    m_memory[i] = m_memory[i - 1];
+                    expand_capacity();
+                    auto temp_memory{m_memory};
+                    m_memory = new Type[m_capacity];
+
+                    for(UInt64 i = 0; i < m_size; ++i){
+                        m_memory[i + 1] = std::move(temp_memory[i]);
+                    }
+
+                }else{
+                    for(UInt64 i = m_size - 1; i >= 0; --i){
+                        m_memory[i + 1] = std::move(m_memory[i]);
+                    }
                 }
 
                 m_memory[0] = lvalue;
                 ++m_size;
+
+            }
+
+            void push_front(Type&& rvalue){
+
+                //메모리가 부족하면 늘립니다.
+                if(m_size == m_capacity){
+
+                    expand_capacity();
+                    auto temp_memory{m_memory};
+                    m_memory = new Type[m_capacity];
+
+                    for(UInt64 i = 0; i < m_size; ++i){
+                        m_memory[i + 1] = std::move(temp_memory[i]);
+                    }
+
+                }else{
+                    for(UInt64 i = m_size - 1; i >= 0; --i){
+                        m_memory[i + 1] = std::move(m_memory[i]);
+                    }
+                }
+
+                m_memory[0] = std::move(rvalue);
+                ++m_size;
+
+            }
+
+            void push_front(std::initializer_list<Type> list){
+
+                if(m_size + list.size() > m_capacity){
+                    
+                    while(m_capacity < m_size + list.size()){
+                        expand_capacity();
+                    }
+
+                    auto temp_memory{m_memory};
+                    m_memory = new Type[m_capacity];
+
+                    for(UInt64 i = 0; i < m_size; ++i){
+                        m_memory[list.size() + i] = std::move(temp_memory[i]);
+                    }
+
+                    for(UInt64 i = 0; i < list.size(); ++i){
+                        m_memory[i] = std::move(list[i]);
+                    }
+
+                }else{
+
+                    for(UInt64 i = m_size - 1; i >= 0; --i){
+                        m_memory[i + list.size()] = std::move(m_memory[i]);
+                    }
+
+                    for(UInt64 i = 0; i < list.size(); ++i){
+                        m_memory[i] = std::move(list[i]);
+                    }
+
+                }
+
+                m_size += list.size();
 
             }
 
@@ -208,13 +275,6 @@ namespace MIHYCore{
 
                 if(approximated_capacity <= m_capacity){
                     return;
-                }
-
-                //특정 벡터가 다른 벡터에 본인의 데이터를 전해주면(rvalue) 본인은 빈 벡터가 됩니다.
-                //그 후 빈 벡터를 다시 사용하려고 할 때 무한 루프가 발생하지 않도록 최소 크기로 지정합니다.
-                //m_memory가 nullptr로 남아있긴 하지만 delete는 null safe하므로 문제가 되지 않습니다.
-                if(m_capacity == 0){
-                    m_capacity = 2;
                 }
 
                 while(m_capacity < approximated_capacity){
@@ -337,7 +397,7 @@ namespace MIHYCore{
 
             /// @brief 현재 메모리의 크기를 확장합니다.
             void expand_capacity(){
-                m_capacity = m_capacity * 2;
+                m_capacity = m_capacity * 2 + 1;
             }
 
         };
