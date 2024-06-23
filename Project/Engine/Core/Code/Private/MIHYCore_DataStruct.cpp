@@ -209,7 +209,7 @@ namespace MIHYCore{
             assert(temp[0] == 0 && temp[1] == 1 && temp[2] == 2);
 
             temp.clear();
-            for(auto e : v){ temp.push_back(e); }
+            for(const auto e : v){ temp.push_back(e); }
             assert(temp[0] == 0 && temp[1] == 1 && temp[2] == 2);
 
             temp.clear();
@@ -249,11 +249,30 @@ namespace MIHYCore{
             v.push_front(v2);
             v.push_front(std::move(v3));
             v.push_front(v4.begin(), v4.end());
-            assert(v[0] == 8 && v[1] == 7 && v[2] == 5 && v[3] == 6 && v[4] == 3 && v[5] == 4 && v[6] == 2 && v[7] == 1 && v[8] == 0);
+            assert(v[0] == 7 && v[1] == 8 && v[2] == 5 && v[3] == 6 && v[4] == 3 && v[5] == 4 && v[6] == 1 && v[7] == 2 && v[8] == 0);
             assert(v2[0] == 3 && v2[1] == 4);
             //v3는 이동되기 때문에 size가 0입니다. 
             assert(v4[0] == 7 && v4[1] == 8);
             assert(v.get_size() == 9 && v2.get_size() == 2 && v3.get_size() == 0 && v4.get_size() == 2);
+        }
+
+        {//push
+            V v{2, {0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 0}};
+            V v2{2, {3, 4}};
+            V v3{2, {5, 6}};
+            V v4{2, {7, 8}};
+            v.push(7, 0);
+            v.push(7, {1, 2});
+            v.push(7, v2);
+            v.push(7, std::move(v3));
+            v.push(7, v4.begin(), v4.end());
+            assert(v[7] == 7 && v[8] == 8 && v[9] == 5 && v[10] == 6 && v[11] == 3 && v[12] == 4 && v[13] == 1 && v[14] == 2 && v[15] == 0);
+            assert(v[0] == 0 && v[1] == 1 && v[2] == 1 && v[3] == 1 && v[4] == 2 && v[5] == 2 && v[6] == 2);
+            assert(v[16] == 2 && v[17] == 2 && v[18] == 2 && v[19] == 1 && v[20] == 1 && v[21] == 1 && v[22] == 0);
+            assert(v2[0] == 3 && v2[1] == 4);
+            //v3는 이동되기 때문에 size가 0입니다. 
+            assert(v4[0] == 7 && v4[1] == 8);
+            assert(v.get_size() == 23 && v2.get_size() == 2 && v3.get_size() == 0 && v4.get_size() == 2);
         }
 
         // {//pop_back
