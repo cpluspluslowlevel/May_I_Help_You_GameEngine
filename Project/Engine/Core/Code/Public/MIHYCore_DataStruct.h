@@ -129,7 +129,7 @@ namespace MIHYCore{
             }
 
             /// @brief 뒤에 원소를 추가합니다.
-            /// @param lvalue 복사할 데이터
+            /// @param lvalue 원소의 값
             void push_back(const Type& lvalue){
 
                 //메모리가 부족하면 늘립니다.
@@ -142,7 +142,7 @@ namespace MIHYCore{
             }
 
             /// @brief 뒤에 원소를 추가합니다.
-            /// @param value 이동할 데이터
+            /// @param rvalue 원소의 값
             void push_back(Type&& rvalue){
 
                 //메모리가 부족하면 늘립니다.
@@ -171,23 +171,63 @@ namespace MIHYCore{
 
             }
 
-            void push_front(const Type& lvalue){
+            /// @brief 벡터의 원소들을 뒤에 추가합니다.
+            /// @param lvalue 추가할 벡터
+            void push_back(const MIHYVector& lvalue){
 
                 //메모리가 부족하면 늘립니다.
+                if(m_size + lvalue.m_size > m_capacity){
+                    reserve_capacity(m_size + lvalue.m_size);
+                }
+
+                //모든 원소를 복사합니다.
+                for(UInt64 i = 0; i < lvalue.m_size; ++i){
+                    m_memory[m_size++] = lvalue[i];
+                }
+
+            }
+            
+            /// @brief 벡터의 원소들을 뒤에 추가합니다.
+            /// @param rvalue 추가할 벡터
+            void push_back(MIHYVector&& rvalue){
+
+                //메모리가 부족하면 늘립니다.
+                if(m_size + rvalue.m_size > m_capacity){
+                    reserve_capacity(m_size + rvalue.m_size);
+                }
+
+                //모든 원소를 복사합니다.
+                for(UInt64 i = 0; i < rvalue.m_size; ++i){
+                    m_memory[m_size++] = std::move(rvalue[i]);
+                }
+
+                rvalue.m_memory = nullptr;
+                rvalue.m_size   = 0;
+
+            }
+
+            /// @brief 뒤에 원소를 추가합니다.
+            /// @tparam Iterator 반복자 타입
+            /// @param begin 시작 반복자
+            /// @param end 끝 반복자
+            template<typename Iterator>
+            void push_back(Iterator begin, Iterator end){
+                while(begin != end){
+                    push_back(*begin);
+                    ++begin;
+                }                
+            }
+
+
+            /// @brief 앞에 원소를 추가합니다.
+            /// @param lvalue 원소의 값
+            void push_front(const Type& lvalue){
+
+                //메모리가 부족하면 확장하고 새로운 원소가 앞에 들어가기 위해 기존 원소들을 밀어냅니다.
                 if(m_size == m_capacity){
-
-                    expand_capacity();
-                    auto temp_memory{m_memory};
-                    m_memory = new Type[m_capacity];
-
-                    for(UInt64 i = 0; i < m_size; ++i){
-                        m_memory[i + 1] = std::move(temp_memory[i]);
-                    }
-
+                    reserve_capacity(m_size + 1, 1);
                 }else{
-                    for(UInt64 i = m_size - 1; i >= 0; --i){
-                        m_memory[i + 1] = std::move(m_memory[i]);
-                    }
+                    shift_right_element(1);
                 }
 
                 m_memory[0] = lvalue;
@@ -195,23 +235,15 @@ namespace MIHYCore{
 
             }
 
+            /// @brief 앞에 원소를 추가합니다.
+            /// @param rvalue 원소의 값
             void push_front(Type&& rvalue){
 
-                //메모리가 부족하면 늘립니다.
+                //메모리가 부족하면 확장하고 새로운 원소가 앞에 들어가기 위해 기존 원소들을 밀어냅니다.
                 if(m_size == m_capacity){
-
-                    expand_capacity();
-                    auto temp_memory{m_memory};
-                    m_memory = new Type[m_capacity];
-
-                    for(UInt64 i = 0; i < m_size; ++i){
-                        m_memory[i + 1] = std::move(temp_memory[i]);
-                    }
-
+                    reserve_capacity(m_size + 1, 1);
                 }else{
-                    for(UInt64 i = m_size - 1; i >= 0; --i){
-                        m_memory[i + 1] = std::move(m_memory[i]);
-                    }
+                    shift_right_element(1);
                 }
 
                 m_memory[0] = std::move(rvalue);
@@ -219,39 +251,76 @@ namespace MIHYCore{
 
             }
 
+            /// @brief 앞에 원소를 추가합니다.
+            /// @param list 추가할 원소의 초기화 리스트
             void push_front(std::initializer_list<Type> list){
 
+                //메모리가 부족하면 확장하고 새로운 원소가 앞에 들어가기 위해 기존 원소들을 밀어냅니다.
                 if(m_size + list.size() > m_capacity){
-                    
-                    while(m_capacity < m_size + list.size()){
-                        expand_capacity();
-                    }
-
-                    auto temp_memory{m_memory};
-                    m_memory = new Type[m_capacity];
-
-                    for(UInt64 i = 0; i < m_size; ++i){
-                        m_memory[list.size() + i] = std::move(temp_memory[i]);
-                    }
-
-                    for(UInt64 i = 0; i < list.size(); ++i){
-                        m_memory[i] = std::move(list[i]);
-                    }
-
+                    reserve_capacity(m_size + list.size(), list.size());
                 }else{
-
-                    for(UInt64 i = m_size - 1; i >= 0; --i){
-                        m_memory[i + list.size()] = std::move(m_memory[i]);
-                    }
-
-                    for(UInt64 i = 0; i < list.size(); ++i){
-                        m_memory[i] = std::move(list[i]);
-                    }
-
+                    shift_right_element(list.size());
                 }
 
+                UInt64 index{list.size() - 1};
+                for(auto e : list){
+                    m_memory[index--] = std::move(e);
+                }
                 m_size += list.size();
 
+            }
+
+            /// @brief 앞에 벡터를 추가합니다.
+            /// @param lvalue 추가할 백터. 벡터 자체이기 때문에 벡터 내부의 순서가 그대로 유지된 채로 추가됩니다.
+            void push_front(const MIHYVector& lvalue){
+
+                //메모리가 부족하면 확장하고 새로운 원소가 앞에 들어가기 위해 기존 원소들을 밀어냅니다.
+                if(m_size + lvalue.m_size > m_capacity){
+                    reserve_capacity(m_size + lvalue.m_size, lvalue.m_size);
+                }else{
+                    shift_right_element(lvalue.m_size);
+                }
+
+                //lvalue 원소를 복사합니다.
+                for(UInt64 i = 0; i < lvalue.m_size; ++i){
+                    m_memory[i] = lvalue[i];
+                }
+                m_size += lvalue.m_size;
+
+            }
+
+            /// @brief 앞에 벡터를 추가합니다.
+            /// @param rvalue 추가할 벡터. 벡터 자체이기 때문에 벡터 내부의 순서가 그대로 유지된 채로 추가됩니다.
+            void push_front(MIHYVector&& rvalue){
+
+                //메모리가 부족하면 확장하고 새로운 원소가 앞에 들어가기 위해 기존 원소들을 밀어냅니다.
+                if(m_size + rvalue.m_size > m_capacity){
+                    reserve_capacity(m_size + rvalue.m_size, rvalue.m_size);
+                }else{
+                    shift_right_element(rvalue.m_size);
+                }
+
+                //rvalue 원소를 복사합니다.
+                for(UInt64 i = 0; i < rvalue.m_size; ++i){
+                    m_memory[i] = std::move(rvalue[i]);
+                }
+                m_size += rvalue.m_size;
+
+                rvalue.m_memory = nullptr;
+                rvalue.m_size   = 0;
+
+            }
+
+            /// @brief 앞에 원소를 추가합니다.
+            /// @tparam Iterator 반복자 타입
+            /// @param begin 시작 반복자
+            /// @param end 끝 반복자
+            template<typename Iterator>
+            void push_front(Iterator begin, Iterator end){
+                while(begin != end){
+                    push_front(*begin);
+                    ++begin;
+                }
             }
 
             /// @brief 마지막 원소를 제거합니다.
@@ -266,11 +335,12 @@ namespace MIHYCore{
                 m_size = 0;
             }
 
-            /// @brief 메모리를 미리 할당합니다.
-            /// @details approximated_capacity수치를 기반으로 적당한 크기의 메모리를 미리 할당합니다. approximated_capacity보다 큰 크기의 메모리가 할당되나 정확한 크기는 아닙니다. 
+            /// @brief 메모리를 할당합니다.
+            /// @details approximated_capacity수치를 기반으로 적당한 크기의 메모리를 할당합니다. approximated_capacity보다 크거나 같은 크기의 메모리가 할당되나 정확한 크기는 아닙니다. 
             ///          만약 approximated_capacity가 현재 메모리의 크기보다 작다면 아무런 작업을 하지 않습니다.
             /// @param approximated_capacity 원하는 메모리의 대략적인 크기
-            void reserve_capacity(UInt64 approximated_capacity)
+            /// @param copy_offset 복사할 원소의 오프셋. 오프셋으로 인해 원소가 메모리 밖에 복사되는지 감시하지 않습니다. 적합한 값을 사용하세요.
+            void reserve_capacity(UInt64 approximated_capacity, UInt64 copy_offset = 0)
             {
 
                 if(approximated_capacity <= m_capacity){
@@ -284,7 +354,7 @@ namespace MIHYCore{
                 auto temp_memory{m_memory};
                 m_memory = new Type[m_capacity];
                 for(UInt64 i = 0; i < m_size; ++i){
-                    m_memory[i] = temp_memory[i];
+                    m_memory[i + copy_offset] = temp_memory[i];
                 }
 
                 delete[] temp_memory;
@@ -398,6 +468,25 @@ namespace MIHYCore{
             /// @brief 현재 메모리의 크기를 확장합니다.
             void expand_capacity(){
                 m_capacity = m_capacity * 2 + 1;
+            }
+
+            /// @brief 원소들을 일정 거리 이동시킵니다.
+            /// @param distance 이동할 거리
+            void shift_right_element(UInt64 distance){
+                
+                if(m_size == 0){
+                    return;
+                }
+
+                UInt64 i{m_size - 1};
+                while(true){
+                    m_memory[i + distance] = std::move(m_memory[i]);
+                    if(i == 0){
+                        break;
+                    }
+                    --i;
+                }
+
             }
 
         };

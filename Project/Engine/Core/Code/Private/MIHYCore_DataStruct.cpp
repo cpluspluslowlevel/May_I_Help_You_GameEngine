@@ -226,36 +226,35 @@ namespace MIHYCore{
             V v{2};
             V v2{2, {3, 4}};
             V v3{2, {5, 6}};
+            V v4{2, {7, 8}};
             v.push_back(0);
             v.push_back({1, 2});
             v.push_back(v2);
-            v.push_back(v3.iterator.begin());
-            assert(v[0] == 0 && v[1] == 1 && v[2] == 2 && v[3] == 3 && v[4] == 4 && v[5] == 5 && v[6] == 6);
+            v.push_back(std::move(v3));
+            v.push_back(v4.begin(), v4.end());
+            assert(v[0] == 0 && v[1] == 1 && v[2] == 2 && v[3] == 3 && v[4] == 4 && v[5] == 5 && v[6] == 6 && v[7] == 7 && v[8] == 8);
+            assert(v2[0] == 3 && v2[1] == 4);
+            //v3는 이동되기 때문에 size가 0입니다. 
+            assert(v4[0] == 7 && v4[1] == 8);
+            assert(v.get_size() == 9 && v2.get_size() == 2 && v3.get_size() == 0 && v4.get_size() == 2);
         }
 
-        {//push_front
+        {//push front
             V v{2};
             V v2{2, {3, 4}};
             V v3{2, {5, 6}};
+            V v4{2, {7, 8}};
             v.push_front(0);
-            v.push_front({1, 2});                //초기화 리스트를 통해 순서대로 넣은 의미이기에 역순으로 위치하게됨
-            v.push_front(v2);                    //컨테이너 자체를 복사하는 것이기에 역순이 아닌 그대로 들어감
-            v.push_front(v3.iterator.begin());   //이터레이터를 통해 하나하나 복사하는 의미이기에 반복자의 역순으로 위치하게됨
-            assert(v[0] == 6 && v[1] == 5 && v[2] == 3 && v[3] == 4 && v[4] == 2 && v[5] == 1 && v[6] == 0);
+            v.push_front({1, 2});
+            v.push_front(v2);
+            v.push_front(std::move(v3));
+            v.push_front(v4.begin(), v4.end());
+            assert(v[0] == 8 && v[1] == 7 && v[2] == 5 && v[3] == 6 && v[4] == 3 && v[5] == 4 && v[6] == 2 && v[7] == 1 && v[8] == 0);
+            assert(v2[0] == 3 && v2[1] == 4);
+            //v3는 이동되기 때문에 size가 0입니다. 
+            assert(v4[0] == 7 && v4[1] == 8);
+            assert(v.get_size() == 9 && v2.get_size() == 2 && v3.get_size() == 0 && v4.get_size() == 2);
         }
-
-        // {//push_at
-        //     V v{2, {88, 99, 99, 88}};
-        //     V v2{2, {3, 4}};
-        //     V v3{2, {5, 6}};
-        //     v.push_at(2, 0);
-        //     v.push_at(2, {1, 2});                //초기화 리스트를 통해 순서대로 넣은 의미이기에 역순으로 위치하게됨
-        //     v.push_at(2, v2);                    //컨테이너 자체를 복사하는 것이기에 역순이 아닌 그대로 들어감
-        //     v.push_at(2, v3.iterator.begin());   //이터레이터를 통해 하나하나 복사하는 의미이기에 반복자의 역순으로 위치하게됨
-        //     assert(v[0] == 88 && v[1] == 99 &&
-        //            v[2] == 6 && v[3] == 5 && v[4] == 3 && v[5] == 4 && v[6] == 2 && v[7] == 1 && v[8] == 0 &&
-        //            v[9] == 99 && v[10] == 88);
-        // }
 
         // {//pop_back
         //     V v{2, {0, 1, 2}};

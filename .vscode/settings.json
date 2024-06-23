@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "format": "cpp",
+        "list": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "initializer_list": "cpp",
+        "xhash": "cpp",
+        "xutility": "cpp",
+        "type_traits": "cpp"
+    }
+}
