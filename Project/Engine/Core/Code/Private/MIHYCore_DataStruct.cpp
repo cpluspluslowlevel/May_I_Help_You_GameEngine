@@ -7,7 +7,7 @@ namespace MIHYCore{
 
         
 
-    std::string MIHYVector_UnitTest()
+    void mihyvector_unittest()
     {
         
 #define VECTOR_PRINT(v) std::cout << "Capacity: " << v.get_capacity() << std::endl; for(UInt32 i = 0; i < v.get_size(); ++i) std::cout << v[i] << " "; std::cout << std::endl;
@@ -309,7 +309,9 @@ namespace MIHYCore{
             assert(v.get_size() == 0);
         }
 
-        return "Success";
+    }
+
+    void mihylist_unittest(){
 
     }
 

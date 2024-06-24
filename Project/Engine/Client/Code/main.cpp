@@ -10,7 +10,8 @@ int main()
 
     std::cout << "Hello World!" << std::endl;
 
-    MIHYCore::DataStruct::MIHYVector_UnitTest();
+    MIHYCore::DataStruct::mihyvector_unittest();
+    MIHYCore::DataStruct::mihylist_unittest();
 
     
     return 0;

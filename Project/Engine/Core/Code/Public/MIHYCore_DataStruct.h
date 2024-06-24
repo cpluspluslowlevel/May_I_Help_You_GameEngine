@@ -419,7 +419,6 @@ namespace MIHYCore{
                     shift_left_element(index + 1, 1);
                     --m_size;
                 }
-
             }
 
             /// @brief 모든 원소를 제거합니다.
@@ -898,8 +897,26 @@ namespace MIHYCore{
 
         };
 
+
+
+        template<typename Type>
+        class MIHYList{
+        private:
+        public:
+        };
+
+
+
+
+
+
         //Unit test
-        MIHYCORE_API std::string MIHYVector_UnitTest();
+        MIHYCORE_API void mihyvector_unittest();
+        MIHYCORE_API void mihylist_unittest();
+
+
+
+
 
         /// @brief              Foreach에서 역방향 반복자를 사용하기 위한 어뎁터 클래스입니다.
         /// @tparam Container   컨테이너 타입
