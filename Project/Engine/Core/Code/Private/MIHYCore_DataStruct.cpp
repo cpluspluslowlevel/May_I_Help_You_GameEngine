@@ -275,23 +275,39 @@ namespace MIHYCore{
             assert(v.get_size() == 23 && v2.get_size() == 2 && v3.get_size() == 0 && v4.get_size() == 2);
         }
 
-        // {//pop_back
-        //     V v{2, {0, 1, 2}};
-        //     v.pop_back();
-        //     assert(v.get_size() == 2 && v[0] == 0 && v[1] == 1);
-        // }
+        {//pop_back
+            V v{2, {0, 1, 2}};
+            v.pop_back();
+            assert(v.get_size() == 2 && v[0] == 0 && v[1] == 1);
+            v.pop_back();
+            v.pop_back();
+            v.pop_back();
+            assert(v.get_size() == 0);
+        }
 
-        // {//pop_front
-        //     V v{2, {0, 1, 2}};
-        //     v.pop_front();
-        //     assert(v.get_size() == 2 && v[0] == 1 && v[1] == 2);
-        // }
+        {//pop_front
+            V v{2, {0, 1, 2}};
+            v.pop_front();
+            assert(v.get_size() == 2 && v[0] == 1 && v[1] == 2);
+            v.pop_front();
+            v.pop_front();
+            v.pop_front();
+            assert(v.get_size() == 0);
+        }
 
-        // {//pop_at
-        //     V v{2, {0, 1, 2}};
-        //     v.pop_at(1);
-        //     assert(v.get_size() == 2 && v[0] == 0 && v[1] == 2);
-        // }
+        {//pop
+            V v{2, {0, 1, 2, 4, 5}};
+            v.pop(2);
+            assert(v.get_size() == 4 && v[0] == 0 && v[1] == 1 && v[2] == 4 && v[3] == 5);
+            v.pop(0);
+            assert(v.get_size() == 3 && v[0] == 1 && v[1] == 4 && v[2] == 5);
+            v.pop(2);
+            assert(v.get_size() == 2 && v[0] == 1 && v[1] == 4);
+            v.pop(0);
+            v.pop(0);
+            v.pop(0);
+            assert(v.get_size() == 0);
+        }
 
         return "Success";
 

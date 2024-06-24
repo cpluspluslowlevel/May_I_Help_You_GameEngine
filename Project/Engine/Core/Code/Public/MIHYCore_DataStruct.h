@@ -402,6 +402,26 @@ namespace MIHYCore{
                 }
             }
 
+            void pop_front(){
+                if(m_size > 0){
+                    shift_left_element(0, 1);
+                    --m_size;
+                }
+            }
+
+            void pop(UInt64 index){
+                if(m_size == 0){
+                    return;
+                }else if(index == m_size - 1){
+                    --m_size;
+                    return;
+                }else{
+                    shift_left_element(index + 1, 1);
+                    --m_size;
+                }
+
+            }
+
             /// @brief 모든 원소를 제거합니다.
             void clear(){
                 m_size = 0;
@@ -555,10 +575,12 @@ namespace MIHYCore{
                 m_capacity = m_capacity * 2 + 1;
             }
 
-            /// @brief              원소들을 일정 거리 이동시킵니다.
-            /// @param distance     이동할 거리
+            /// @brief                  원소들을 오른쪽으로 일정 거리 이동시킵니다.
+            /// @param start_index      이동을 시작할 인덱스
+            /// @param distance         이동할 거리
             void shift_right_element(UInt64 start_index, UInt64 distance){
                 
+                //m_size - 1이 언더플로우가 일어나기 때문에 예외처리 합니다.
                 if(m_size == 0){
                     return;
                 }
@@ -573,6 +595,28 @@ namespace MIHYCore{
                 }
 
             }
+
+
+            /// @brief                  원소들을 왼쪽으로 일정 거리 이동시킵니다.
+            /// @param start_index      이동을 시작할 인덱스
+            /// @param distance         이동할 거리
+            void shift_left_element(UInt64 start_index, UInt64 distance){
+
+                //왼쪽으로 밀면서 메모리에서 벗어나 소실되는 원소의 개수를 계산합니다.
+                UInt64 release_element_number{0};
+                if(start_index < distance){
+                    release_element_number = distance - start_index;
+                }
+                
+
+                UInt64 index{start_index + release_element_number};
+                while(index < m_size){
+                    m_memory[index - distance] = std::move(m_memory[index]);
+                    ++index;
+                }
+
+            }
+
 
         };
 
