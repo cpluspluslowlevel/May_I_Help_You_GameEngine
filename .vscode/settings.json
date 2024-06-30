@@ -1,4 +1,5 @@
 {
+
     "files.associations": {
         "format": "cpp",
         "list": "cpp",
@@ -8,5 +9,9 @@
         "xhash": "cpp",
         "xutility": "cpp",
         "type_traits": "cpp"
-    }
+    },
+
+    "cmake.sourceDirectory": "D:/Development/Project/May_I_Help_You_GameEngine/Project",
+    "cmake.buildDirectory": "${workspaceFolder}/Project/Build"
+
 }
