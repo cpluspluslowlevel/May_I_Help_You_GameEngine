@@ -1,6 +1,7 @@
 #include "MIHYCore_PCH.h"
 #include "MIHYCore_DataStruct.h"
 
+#include <list>
 
 namespace MIHYCore{
     namespace DataStruct{
@@ -315,20 +316,40 @@ namespace MIHYCore{
     void mihylist_unittest(){
 
         class ListElement{
+        public:
+            ListElement(Int64 v) : value{v}{}
+            ListElement(const ListElement& lvalue) : value{lvalue.value}{}
+            ListElement(ListElement&& rvalue) : value{rvalue.value}{}
+            ~ListElement() = default;
+
+            Int64 value;
+
+            bool operator==(Int64 v){
+                return value == v;
+            }
+
+            bool operator!=(Int64 v){
+                return value != v;
+            }
 
         };
 
-        using L = MIHYCore::DataStruct::MIHYList<ListElement>;
+        using E = ListElement;
+        using L = MIHYList<E>;
 
         //get_size
         {
-            L l{};
-            std::cout << "List UnitTest" << std::endl;
+            L l{{E{10}, E{20}, E{30}}};
+            assert(l.get_size() == 3);
         }
 
         //clear
-
-        //get
+        {
+            L l{{E{10}, E{20}, E{30}}};
+            assert(l.get_size() == 3);
+            l.clear();
+            assert(l.get_size() == 0);
+        }
 
         //생성자
         //생성자(초기화 리스트)

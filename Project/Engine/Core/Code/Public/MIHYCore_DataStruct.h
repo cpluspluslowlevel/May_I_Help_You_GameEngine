@@ -904,8 +904,103 @@ namespace MIHYCore{
         /// @tparam Type 원소의 타입
         template<typename Type>
         class MIHYList{
-        private:
         public:
+
+            struct NODE{
+                
+                Type value;
+                NODE* prev;
+                NODE* next;
+
+            };
+
+        private:
+
+            NODE*   m_head;
+            NODE*   m_tail;
+            UInt64  m_size;
+
+        public:
+
+            MIHYList() : m_head{nullptr}, m_tail{nullptr}, m_size{0}{}
+
+            MIHYList(std::initializer_list<Type> list) : m_head{nullptr}, m_tail{nullptr}, m_size{list.size()}{
+
+                if(list.size() == 0){
+                    return;
+                }
+                
+                auto iter{list.begin()};
+                m_head = m_tail = new NODE{*iter, nullptr, nullptr};
+
+                ++iter;
+                auto iter_end{list.end()};
+                while(iter != iter_end){
+
+                    m_tail = new NODE{*iter, m_tail, nullptr};
+                    m_tail->prev->next = m_tail;
+
+                    ++iter;
+
+                }
+            
+            }
+
+            MIHYList(const MIHYList& lvalue) : m_head{nullptr}, m_tail{nullptr}, m_size{lvalue.m_size}{
+
+                auto loop{lvalue.m_head};
+                m_head = m_tail = new NODE{loop->value, nullptr, nullptr};
+
+                loop = loop->next;
+                while(loop != nullptr){
+
+                    m_tail = new NODE{loop->value, m_tail, nullptr};
+                    m_tail->prev->next = m_tail;
+
+                    loop = loop->next;
+
+                }
+
+            }
+
+            MIHYList(MIHYList&& rvalue) : m_head{rvalue.m_head}, m_tail{rvalue.m_tail}, m_size{rvalue.m_size}{
+                rvalue.m_head = rvalue.m_tail = nullptr;
+                rvalue.m_size = 0;
+            }
+
+            /// @brief 모든 원소를 삭제합니다.
+            void clear(){
+
+                if(m_head == nullptr){
+                    return;
+                }
+
+                auto loop{m_head};
+                while(true){
+                    
+                    auto temp{loop};
+                    loop = loop->next;
+                    delete temp;
+                    
+                    if(temp == m_tail){
+                        break;
+                    }
+
+                }
+
+                m_head = m_tail = nullptr;
+
+                m_size = 0;
+
+            }
+
+            /// @brief 원소의 개수를 반환합니다.
+            /// @return 원소의 개수
+            UInt64 get_size() const{
+                return m_size;
+            }
+
+
         };
 
 
