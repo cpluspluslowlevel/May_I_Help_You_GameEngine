@@ -899,6 +899,9 @@ namespace MIHYCore{
 
 
 
+        /// @brief 양방향 연결리스트를 구현한 컨테이너입니다.
+        /// @details 원소당 좌우 노드를 가리키기위한 포인터 2개를 갖습니다. 작은 원소를 많이 저장한다면 리스트보다는 벡터 사용을 권장합니다.
+        /// @tparam Type 원소의 타입
         template<typename Type>
         class MIHYList{
         private:

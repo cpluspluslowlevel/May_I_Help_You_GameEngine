@@ -49,6 +49,7 @@ namespace MIHYCore{
             assert(v.get_capacity() > 2 && v.get_size() == 3 &&
                    v[0] == 0 && v[1] == 1 && v[2] == 2);
         };
+
         {//복사 생성자
             V o{5, {0, 1, 2}};
             V v{o};
@@ -312,6 +313,46 @@ namespace MIHYCore{
     }
 
     void mihylist_unittest(){
+
+        class ListElement{
+
+        };
+
+        using L = MIHYCore::DataStruct::MIHYList<ListElement>;
+
+        //get_size
+        {
+            L l{};
+            std::cout << "List UnitTest" << std::endl;
+        }
+
+        //clear
+
+        //get
+
+        //생성자
+        //생성자(초기화 리스트)
+        //생성자(복사)
+        //생성자(이동)
+
+        //대입
+
+        //이동
+
+        //push_back
+
+        //push_front
+
+        //push
+
+        //pop_back
+
+        //pop_front
+
+        //Iterator 생성자
+
+        //Iterator
+
 
     }
 
