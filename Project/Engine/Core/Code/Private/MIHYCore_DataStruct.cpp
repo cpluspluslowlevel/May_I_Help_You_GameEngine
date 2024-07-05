@@ -471,11 +471,73 @@ namespace MIHYCore{
         }
 
         //push_back(lvalue)
+        {
+
+            E e0{10};
+            E e1{20};
+            E e2{30};
+
+            L l{};
+            l.push_back(e0);         //리스트가 비었을 경우
+            l.push_back(e1);         //m_head == m_tail일 경우
+            l.push_back(e2);         //m_head != m_tail일 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+        }
+
         //push_back(rvalue)
+        {
+
+            L l{};
+            l.push_back(E{10});         //리스트가 비었을 경우
+            l.push_back(E{20});         //m_head == m_tail일 경우
+            l.push_back(E{30});         //m_head != m_tail일 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+        }
         //push_back(초기화 리스트)
+        {
+
+            L l{};
+
+            //빈 리스트에 빈 초기화 리스트 추가
+            l.push_back({});
+            assert(l.get_size() == 0);
+            assert(l.m_head == nullptr);
+            assert(l.m_tail == nullptr);
+
+            //빈 리스트에 비지 않은 초기화 리스트 추가
+            l.push_back({E{10}, E{20}});
+            assert(l.get_size() == 2);
+            assert(l.get(0) == 10 && l.get(1) == 20);
+
+            //비지 않은 리스트에 빈 초기화 리스트 추가
+            l.push_back({});
+            assert(l.get_size() == 2);
+            assert(l.get(0) == 10 && l.get(1) == 20);
+
+            //비지 않은 리스트에 비지 않은 초기화 리스트 추가
+            l.push_back({E{30}, E{40}});
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
+
+        }
+
         //push_back(List lvalue)
+        {
+
+        }
+        
         //push_back(List rvalue)
+        {
+
+        }
         //push_back(Iterator)
+        {
+
+        }
         
         
 

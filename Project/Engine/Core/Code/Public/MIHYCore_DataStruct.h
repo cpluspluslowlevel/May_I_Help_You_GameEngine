@@ -1073,6 +1073,69 @@ namespace MIHYCore{
 
             }
 
+
+            void push_back(const Type& lvalue){
+
+                if(m_size == 0){
+                    m_head = m_tail = new NODE{lvalue, nullptr, nullptr};
+                }else{
+                    m_tail = new NODE{lvalue, m_tail, nullptr};
+                    m_tail->prev->next = m_tail;
+                }
+
+                ++m_size;
+
+            }
+
+            void push_back(Type&& rvalue){
+
+                if(m_size == 0){
+                    m_head = m_tail = new NODE{std::move(rvalue), nullptr, nullptr};
+                }else{
+                    m_tail = new NODE{std::move(rvalue), m_tail, nullptr};
+                    m_tail->prev->next = m_tail;
+                }
+
+                ++m_size;
+
+            }
+
+            void push_back(std::initializer_list<Type> list){
+
+                if(list.size() == 0){
+                    return;
+                }
+
+                auto iter{list.begin()};
+
+                if(m_size == 0){
+                    m_head = m_tail = new NODE{std::move(iter->value), nullptr, nullptr};
+                    ++iter;
+                }
+
+                while(iter != list.end()){
+
+                    m_tail = new NODE{std::move(iter->value), m_tail, nullptr};
+                    m_tail->prev->next = m_tail;
+
+                    ++iter;
+
+                }
+
+                m_size += list.size();
+
+            }
+
+            void push_back(const MIHYList& lvalue){
+            }
+
+            void push_back(MIHYList&& rvalue){
+            }
+
+            template<typename Iterator>
+            void push_back(Iterator begin, Iterator end){
+            }
+
             /// @brief 원소의 개수를 반환합니다.
             /// @return 원소의 개수
             UInt64 get_size() const{
