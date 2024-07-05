@@ -313,26 +313,41 @@ namespace MIHYCore{
 
     }
 
+    class ListElement{
+    public:
+        ListElement(Int64 v) : value{v}{}
+        ListElement(const ListElement& lvalue) : value{lvalue.value}{}
+        ListElement(ListElement&& rvalue) : value{rvalue.value}{}
+        ~ListElement() = default;
+        ListElement& operator=(const ListElement& lvalue){
+            value = lvalue.value;
+            return *this;
+        }
+        ListElement& operator=(ListElement&& rvalue){
+            value = rvalue.value;
+            return *this;
+        }
+
+        Int64 value;
+
+        bool operator==(const ListElement& v){
+            return value == v.value;
+        }
+
+        bool operator==(Int64 v){
+            return value == v;
+        }
+
+        bool operator!=(Int64 v){
+            return value != v;
+        }
+
+    };
+
+    void mihylist_unittest_copy_test(std::initializer_list<ListElement> list, std::initializer_list<ListElement> copy_list);
     void mihylist_unittest(){
 
-        class ListElement{
-        public:
-            ListElement(Int64 v) : value{v}{}
-            ListElement(const ListElement& lvalue) : value{lvalue.value}{}
-            ListElement(ListElement&& rvalue) : value{rvalue.value}{}
-            ~ListElement() = default;
-
-            Int64 value;
-
-            bool operator==(Int64 v){
-                return value == v;
-            }
-
-            bool operator!=(Int64 v){
-                return value != v;
-            }
-
-        };
+        
 
         using E = ListElement;
         using L = MIHYList<E>;
@@ -349,22 +364,140 @@ namespace MIHYCore{
             assert(l.get_size() == 3);
             l.clear();
             assert(l.get_size() == 0);
+            assert(l.m_head == nullptr);
+            assert(l.m_tail == nullptr);
+        }
+
+        //get
+        {
+            L l{{E{10}, E{20}, E{30}}};
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
         }
 
         //생성자
+        {
+            L l{};
+            assert(l.get_size() == 0);
+        }
+
         //생성자(초기화 리스트)
+        {
+            L l{E{10}, E{20}, E{30}};
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10);
+            assert(l.get(1) == 20);
+            assert(l.get(2) == 30);
+            assert(l.m_head->value == 10);
+            assert(l.m_tail->value == 30);
+            assert(l.m_head->next->value == 20);
+            assert(l.m_tail->prev->value == 20);
+            assert(l.m_head->next->prev == l.m_head);
+            assert(l.m_head->next->next == l.m_tail);
+
+            L l2{{E{10}}};              //원소가 하나인 경우
+            assert(l2.get_size() == 1);
+            assert(l2.get(0) == 10);
+            assert(l2.m_head == l2.m_tail);
+            assert(l2.m_head->prev == nullptr);
+            assert(l2.m_head->next == nullptr);
+
+            L l3{{}};                   //원소가 없는 경우
+            assert(l3.get_size() == 0);
+            assert(l3.m_head == nullptr);
+            assert(l3.m_tail == nullptr);
+
+        }
+
         //생성자(복사)
+        {
+            L l{E{10}, E{20}, E{30}};
+            L copy{l};
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+            assert(copy.get_size() == 3);
+            assert(copy.get(0) == 10 && copy.get(1) == 20 && copy.get(2) == 30);
+        }
+
         //생성자(이동)
+        {
+            L l{E{10}, E{20}, E{30}};
+            L move{std::move(l)};
+            assert(l.get_size() == 0);
+            assert(move.get_size() == 3);
+            assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
+        }
 
         //대입
+        {
+            //빈 컨테이너에 대입되는 경우
+            #define f mihylist_unittest_copy_test
+            f({}, {});                                                  //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 | 원소의 수가 같을 경우
+            f({}, {E{10}});                                             //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
+            f({}, {E{10}, E{20}});                                      //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
+            f({}, {E{10}, E{20}, E{30}});                               //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+
+            //m_head == m_tail인 컨테이너에 대입되는 경우
+            f({E{1}}, {});                                              //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 | 원소가 더 적을 경우
+            f({E{1}}, {E{10}});                                         //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소의 수가 같을 경우
+            f({E{1}}, {E{10}, E{20}});                                  //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
+            f({E{1}}, {E{10}, E{20}, E{30}});                           //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+
+            //m_head != m_tail인 컨테이너에 대입되는 경우
+            f({E{1}, E{2}}, {});                                        //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 |  원소가 더 적을 경우
+            f({E{1}, E{2}}, {E{10}});                                   //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  |  원소가 더 적을 경우
+            f({E{1}, E{2}}, {E{10}, E{20}});                            //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소의 수가 같을 경우
+            f({E{1}, E{2}}, {E{10}, E{20}, E{30}});                     //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+
+            //m_head != m_tail인 경우 + m_head와 m_tail사이에 원소가 있을 경우의 컨테이너에 대입되는 경우
+            auto init_list = {E{1}, E{2}, E{3}, E{4}, E{5}};
+            f(init_list, {});                                           //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 |  원소가 더 적을 경우
+            f(init_list, {E{10}});                                      //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  |  원소가 더 적을 경우
+            f(init_list, {E{10}, E{20}});                               //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 적을 경우
+            f(init_list, {E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 적을 경우
+            f(init_list, {E{10}, E{20}, E{30}, E{40}, E{50}});          //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소의 수가 같을 경우
+            f(init_list, {E{10}, E{20}, E{30}, E{40}, E{50}, E{60}});   //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+            #undef f
+        }
 
         //이동
+        {
+            L l{E{10}, E{20}, E{30}};
+            L move{};
+            move = std::move(l);
+            assert(l.get_size() == 0);
+            assert(move.get_size() == 3);
+            assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
+        }
 
-        //push_back
+        //push_back(lvalue)
+        //push_back(rvalue)
+        //push_back(초기화 리스트)
+        //push_back(List lvalue)
+        //push_back(List rvalue)
+        //push_back(Iterator)
+        
+        
 
-        //push_front
+        //push_front(lvalue)
+        //push_front(rvalue)
+        //push_front(초기화 리스트)
+        //push_front(List lvalue)
+        //push_front(List rvalue)
+        //push_front(Iterator)
 
-        //push
+        //push(Index, lvalue)
+        //push(Index, rvalue)
+        //push(Index, 초기화 리스트)
+        //push(Index, List lvalue)
+        //push(Index, List rvalue)
+        //push(Index, Iterator)
+        //push(Iterator, lvalue)
+        //push(Iterator, rvalue)
+        //push(Iterator, 초기화 리스트)
+        //push(Iterator, List lvalue)
+        //push(Iterator, List rvalue)
+        //push(Iterator, Iterator)
 
         //pop_back
 
@@ -374,6 +507,28 @@ namespace MIHYCore{
 
         //Iterator
 
+
+    }
+
+    void mihylist_unittest_copy_test(std::initializer_list<ListElement> list, std::initializer_list<ListElement> copy_list){
+
+        MIHYList<ListElement> copy{copy_list};
+        MIHYList<ListElement> l{list};
+
+        l = copy;
+
+        assert(l.get_size() == copy_list.size());           //사이즈를 검사합니다.
+
+        auto    iter{copy_list.begin()};                    //원소가 제대로 들어갔는지 검사합니다.
+        UInt64  i{0};
+        while(iter != copy_list.end()){
+
+            assert(l.get(i) == *iter);
+            
+            ++iter;
+            ++i;
+            
+        }
 
     }
 

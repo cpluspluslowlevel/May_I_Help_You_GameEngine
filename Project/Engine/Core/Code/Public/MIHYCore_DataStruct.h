@@ -931,13 +931,13 @@ namespace MIHYCore{
                 }
                 
                 auto iter{list.begin()};
-                m_head = m_tail = new NODE{*iter, nullptr, nullptr};
+                m_head = m_tail = new NODE{std::move(*iter), nullptr, nullptr};
 
                 ++iter;
                 auto iter_end{list.end()};
                 while(iter != iter_end){
 
-                    m_tail = new NODE{*iter, m_tail, nullptr};
+                    m_tail = new NODE{std::move(*iter), m_tail, nullptr};
                     m_tail->prev->next = m_tail;
 
                     ++iter;
@@ -947,6 +947,10 @@ namespace MIHYCore{
             }
 
             MIHYList(const MIHYList& lvalue) : m_head{nullptr}, m_tail{nullptr}, m_size{lvalue.m_size}{
+
+                if(lvalue.m_size == 0){
+                    return;
+                }
 
                 auto loop{lvalue.m_head};
                 m_head = m_tail = new NODE{loop->value, nullptr, nullptr};
@@ -968,23 +972,98 @@ namespace MIHYCore{
                 rvalue.m_size = 0;
             }
 
+            MIHYList& operator=(const MIHYList& lvalue){
+
+
+                auto    loop{m_head};
+                auto    copy_loop{lvalue.m_head};
+                NODE*   next{m_head};
+
+                //이미 생성된 노드의 크기만큼 복사합니다.
+                const UInt64 overlap_count{std::min(m_size, lvalue.m_size)};
+                for(UInt64 i = 0; i < overlap_count; ++i){
+
+                    loop->value = copy_loop->value;
+                    next        = loop->next;
+
+                    loop        = loop->next;
+                    copy_loop   = copy_loop->next;
+
+                }
+
+                //복사된 노드를 제외한 나머지 노드를 복사합니다.
+                //복사할 노드가 남아있을 경우입니다.
+                if(copy_loop != nullptr){
+
+                    //리스트가 비어있을 경우 하나의 노드를 생성하는 처리를 해두어 밑에 while문에 리스트가 비어있는지 검사하는 if문을 작성하지않게 합니다.
+                    if(m_tail == nullptr){
+                        m_head = m_tail = new NODE{copy_loop->value, nullptr, nullptr};
+                        copy_loop = copy_loop->next;            //복사할 노드가 아직 남아있는 경우이므로 copy_loop가 nullptr이 아닙니다.
+                    }
+
+                    while(copy_loop != nullptr){
+
+                        m_tail = new NODE{copy_loop->value, m_tail, nullptr};
+                        m_tail->prev->next = m_tail;
+
+                        copy_loop = copy_loop->next;
+                        
+                    }
+
+                    m_size = lvalue.m_size;
+
+                }else{      //이미 가지고 있던 노드의 개수가 lvalue의 노드 개수보다 많거나 같은 경우
+
+                    //m_size >= lvalue.m_size인 경우라 음수가 되지 않습니다.
+                    UInt64 remove_count{m_size - lvalue.m_size};
+                    if(remove_count != 0){
+
+                        for(UInt64 i = 0; i < remove_count; ++i){
+
+                            auto temp{m_tail};
+                            m_tail = m_tail->prev;
+                            delete temp;
+
+                        }
+
+                    }
+                    
+                    m_size = lvalue.m_size;
+                    if(m_size == 0){                //노드를 제거하면서 m_tail만 갱신했으므로 m_head가 변경되야할 사항을 예외처리 합니다.
+                        m_head = nullptr;
+                    }
+
+                }
+
+
+                return *this;
+
+            }
+
+            MIHYList& operator=(MIHYList&& rvalue){
+
+                clear();
+
+                m_head = rvalue.m_head;
+                m_tail = rvalue.m_tail;
+                m_size = rvalue.m_size;
+
+                rvalue.m_head = rvalue.m_tail = nullptr;
+                rvalue.m_size = 0;
+
+                return *this;
+
+            }
+
             /// @brief 모든 원소를 삭제합니다.
             void clear(){
 
-                if(m_head == nullptr){
-                    return;
-                }
-
                 auto loop{m_head};
-                while(true){
+                while(loop != nullptr){
                     
                     auto temp{loop};
                     loop = loop->next;
                     delete temp;
-                    
-                    if(temp == m_tail){
-                        break;
-                    }
 
                 }
 
@@ -999,6 +1078,25 @@ namespace MIHYCore{
             UInt64 get_size() const{
                 return m_size;
             }
+
+
+            Type& get(UInt64 index){
+
+                assert(index < m_size);
+
+                auto result{m_head};
+
+                for(UInt64 i = 0; i < index; ++i){
+                    result = result->next;
+                }
+
+                return result->value;
+
+            }
+
+        private:
+
+            friend void mihylist_unittest();
 
 
         };
