@@ -11,7 +11,7 @@
         "type_traits": "cpp"
     },
 
-    "cmake.sourceDirectory": "D:/Development/Project/May_I_Help_You_GameEngine/Project",
+    "cmake.sourceDirectory": "${workspaceFolder}/Project",
     "cmake.buildDirectory": "${workspaceFolder}/Project/Build"
 
 }

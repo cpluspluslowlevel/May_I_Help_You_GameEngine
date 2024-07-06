@@ -1127,6 +1127,29 @@ namespace MIHYCore{
             }
 
             void push_back(const MIHYList& lvalue){
+
+                if(lvalue.m_size == 0){
+                    return;
+                }
+
+                auto node{lvalue.m_head};
+
+                if(m_size == 0){
+                    m_head = m_tail = new NODE{node->value, nullptr, nullptr};
+                    node = node->next;
+                }
+
+                while(node != nullptr){
+
+                    m_tail = new NODE{node->value, m_tail, nullptr};
+                    m_tail->prev->next = m_tail;
+
+                    node = node->next;
+
+                }
+
+                m_size += lvalue.m_size;
+
             }
 
             void push_back(MIHYList&& rvalue){
@@ -1155,6 +1178,28 @@ namespace MIHYCore{
 
                 return result->value;
 
+            }
+
+            const NODE* get_node(UInt64 index) const{
+
+                assert(index < m_size);
+
+                auto result{m_head};
+
+                for(UInt64 i = 0; i < index; ++i){
+                    result = result->next;
+                }
+
+                return result;
+
+            }
+
+            const NODE* get_head_node() const{
+                return m_head;
+            }
+
+            const NODE* get_tail_node() const{
+                return m_tail;
             }
 
         private:
