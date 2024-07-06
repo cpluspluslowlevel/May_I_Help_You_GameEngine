@@ -1102,12 +1102,14 @@ namespace MIHYCore{
 
             void push_back(std::initializer_list<Type> list){
 
-                if(list.size() == 0){
+                if(list.size() == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
                 }
 
                 auto iter{list.begin()};
 
+                //첫 원소가 삽입 될 때를 따로 처리해야 밑에 while문에 if문을 넣지 않을 수 있습니다.
+                //list.size()가 0인 경우를 위에서 처리해서 iter가 list.end()이지 않습니다.
                 if(m_size == 0){
                     m_head = m_tail = new NODE{std::move(iter->value), nullptr, nullptr};
                     ++iter;
@@ -1128,12 +1130,14 @@ namespace MIHYCore{
 
             void push_back(const MIHYList& lvalue){
 
-                if(lvalue.m_size == 0){
+                if(lvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
                 }
 
                 auto node{lvalue.m_head};
 
+                //첫 원소가 삽입 될 때를 따로 처리해야 밑에 while문에 if문을 넣지 않을 수 있습니다.
+                //list.size()가 0인 경우를 위에서 처리해서 iter가 list.end()이지 않습니다.
                 if(m_size == 0){
                     m_head = m_tail = new NODE{node->value, nullptr, nullptr};
                     node = node->next;
@@ -1153,6 +1157,32 @@ namespace MIHYCore{
             }
 
             void push_back(MIHYList&& rvalue){
+
+                if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
+                    return;
+                }
+
+                //빈 컨테이너일 경우와 아닌 경우를 나누어 처리합니다.
+                if(m_size == 0){
+                    m_head = rvalue.m_head;
+                    m_tail = rvalue.m_tail;
+                    m_size = rvalue.m_size;
+                }else{
+
+                    //위에서 두 리스트가 비어있을 때에 대한 예외를 처리했으므로 여기선 두 리스트가 반드시 하나 이상의 원소를 가지고 있습니다.
+
+                    m_tail->next        = rvalue.m_head;        //m_tail과 이동 대상의 head를 서로 연결합니다.
+                    rvalue.m_head->prev = m_tail;
+                    
+                    m_tail = rvalue.m_tail;                     //rvalue의 노드들이 뒤에 붙었으니 m_tail을 rvalue의 m_tail로 갱신합니다.
+
+                    m_size += rvalue.m_size;
+                    
+                }
+
+                rvalue.m_head = rvalue.m_tail = nullptr;
+                rvalue.m_size = 0;
+
             }
 
             template<typename Iterator>
