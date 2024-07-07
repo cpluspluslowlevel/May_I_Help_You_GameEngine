@@ -914,6 +914,11 @@ namespace MIHYCore{
 
             };
 
+            class Iterator;
+            class Const_Iterator;
+            class Reverse_Iterator;
+            class Const_Reverse_Iterator;
+
         private:
 
             NODE*   m_head;
@@ -1239,8 +1244,270 @@ namespace MIHYCore{
 
         };
 
+        template<typename Type>
+        class MIHYList<Type>::Iterator{
+        public:
+            Iterator() = default;
+            
+            Iterator(const Iterator& lvalue) : m_node{lvalue.m_node}{}
+            
+            Iterator(Iterator&& rvalue) noexcept : m_node{rvalue.m_node}{ rvalue.m_node = nullptr; }
+            
+            ~Iterator() = default;
+            
+            Iterator& operator=(const Iterator& lvalue){
+                m_node = lvalue.m_node;
+                return *this;
+            }
 
+            Iterator& operator=(Iterator&& rvalue) noexcept{
+                m_node          = rvalue.m_node;
+                rvalue.m_node   = nullptr;
+                return *this;
+            }
 
+            Iterator& operator++(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            Iterator operator++(int){
+                Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+
+            Iterator& operator--(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            Iterator operator--(int){
+                Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            Type& operator*(){
+                return m_node->value;
+            }
+
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            Type* operator->(){
+                return &m_node->value;
+            }
+
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+        private:
+
+            Iterator(NODE* node) : m_node{node}{}
+
+            NODE* m_node;
+
+            friend class MIHYList<Type>;
+            
+        };
+
+        template<typename Type>
+        class MIHYList<Type>::Const_Iterator{
+        public:
+
+            Const_Iterator() = default;
+            
+            Const_Iterator(const Const_Iterator& lvalue) : m_node{lvalue.m_node}{}
+            
+            Const_Iterator(Const_Iterator&& rvalue) noexcept : m_node{rvalue.m_node}{ rvalue.m_node = nullptr; }
+            
+            ~Const_Iterator() = default;
+            
+            Const_Iterator& operator=(const Const_Iterator& lvalue){
+                m_node = lvalue.m_node;
+                return *this;
+            }
+
+            Const_Iterator& operator=(Const_Iterator&& rvalue) noexcept{
+                m_node          = rvalue.m_node;
+                rvalue.m_node   = nullptr;
+                return *this;
+            }
+
+            Const_Iterator& operator++(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            Const_Iterator operator++(int){
+                Const_Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+            
+            Const_Iterator& operator--(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            Const_Iterator operator--(int){
+                Const_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+            
+        private:
+
+            Const_Iterator(NODE* node) : m_node{node}{}
+
+            NODE* m_node;
+
+            friend class MIHYList<Type>;
+
+        };
+
+        template<typename Type>
+        class MIHYList<Type>::Reverse_Iterator{
+        public:
+            Reverse_Iterator() = default;
+            
+            Reverse_Iterator(const Reverse_Iterator& lvalue) : m_node{lvalue.m_node}{}
+            
+            Reverse_Iterator(Reverse_Iterator&& rvalue) noexcept : m_node{rvalue.m_node}{ rvalue.m_node = nullptr;}
+            
+            ~Reverse_Iterator() = default;
+            
+            Reverse_Iterator& operator=(const Reverse_Iterator& lvalue){
+                m_node = lvalue.m_node;
+                return *this;
+            }
+
+            Reverse_Iterator& operator=(Reverse_Iterator&& rvalue) noexcept{
+                m_node          = rvalue.m_node;
+                rvalue.m_node   = nullptr;
+                return *this;
+            }
+
+            Reverse_Iterator& operator++(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            Reverse_Iterator operator++(int){
+                Reverse_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            Reverse_Iterator& operator--(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            Reverse_Iterator operator--(int){
+                Reverse_Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+
+            Type& operator*(){
+                return m_node->value;
+            }
+
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            Type* operator->(){
+                return &m_node->value;
+            }
+
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+        private:
+
+            Reverse_Iterator(NODE* node) : m_node{node}{}
+
+            NODE* m_node;
+
+            friend class MIHYList<Type>;
+            
+        };
+
+        template<typename Type>
+        class MIHYList<Type>::Const_Reverse_Iterator{
+        public:
+            Const_Reverse_Iterator() = default;
+            
+            Const_Reverse_Iterator(const Const_Reverse_Iterator& lvalue) : m_node{lvalue.m_node}{}
+            
+            Const_Reverse_Iterator(Const_Reverse_Iterator&& rvalue) noexcept : m_node{rvalue}{ rvalue = nullptr; }
+            
+            ~Const_Reverse_Iterator() = default;
+            
+            Const_Reverse_Iterator& operator=(const Const_Reverse_Iterator& lvalue){
+                m_node = lvalue.m_node;
+                return *this;
+            }
+
+            Const_Reverse_Iterator& operator=(Const_Reverse_Iterator&& rvalue) noexcept{
+                m_node          = rvalue.m_node;
+                rvalue.m_node   = nullptr;
+                return *this;
+            }
+
+            Const_Reverse_Iterator& operator++(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            Const_Reverse_Iterator operator++(int){
+                Const_Reverse_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            Const_Reverse_Iterator& operator--(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            Const_Reverse_Iterator operator--(int){
+                Const_Reverse_Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+        private:
+
+            Const_Reverse_Iterator(NODE* node) : m_node{node}{}
+
+            NODE* m_node;
+
+            friend class MIHYList<Type>;
+
+        };
 
 
 
