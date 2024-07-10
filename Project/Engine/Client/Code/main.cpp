@@ -8,11 +8,12 @@
 int main()
 {
 
-    std::cout << "Hello World!" << std::endl;
+    std::cout << "Test start!" << std::endl;
 
     MIHYCore::DataStruct::mihyvector_unittest();
     MIHYCore::DataStruct::mihylist_unittest();
 
+    std::cout << "Test end!" << std::endl;
     
     return 0;
 

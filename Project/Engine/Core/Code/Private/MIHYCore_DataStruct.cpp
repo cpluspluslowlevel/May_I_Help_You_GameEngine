@@ -315,6 +315,7 @@ namespace MIHYCore{
 
     class List_Element{
     public:
+        explicit List_Element() : value{-1000}{}
         List_Element(Int64 v) : value{v}{}
         List_Element(const List_Element& lvalue) : value{lvalue.value}{}
         List_Element(List_Element&& rvalue) : value{rvalue.value}{}
@@ -330,15 +331,15 @@ namespace MIHYCore{
 
         Int64 value;
 
-        bool operator==(const List_Element& v){
+        bool operator==(const List_Element& v) const{
             return value == v.value;
         }
 
-        bool operator==(Int64 v){
+        bool operator==(Int64 v) const{
             return value == v;
         }
 
-        bool operator!=(Int64 v){
+        bool operator!=(Int64 v) const{
             return value != v;
         }
 
@@ -356,58 +357,96 @@ namespace MIHYCore{
 
         //get_size
         {
-            L l{{E{10}, E{20}, E{30}}};
+            L l{E{10}, E{20}, E{30}};
             assert(l.get_size() == 3);
         }
 
         //clear
         {
-            L l{{E{10}, E{20}, E{30}}};
+            L l{E{10}, E{20}, E{30}};
             assert(l.get_size() == 3);
             l.clear();
+            assert(l.is_empty());
             assert(l.get_size() == 0);
-            assert(l.m_head == nullptr);
-            assert(l.m_tail == nullptr);
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
+        }
+
+        //is_empty
+        {
+
+            L empty{};
+            assert(empty.is_empty());
+
+            L not_empty{E{10}};
+            assert(!not_empty.is_empty());
+
         }
 
         //get
         {
-            L l{{E{10}, E{20}, E{30}}};
-            assert(l.get_size() == 3);
+            L l{E{10}, E{20}, E{30}};
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+        }
+
+        //get_node
+        {
+            L l{E{10}, E{20}, E{30}};
+            assert(l.get_head_node()->value == 10);
+            assert(l.get_tail_node()->value == 30);
+            assert(l.get_head_node()->next->value == 20);
+            assert(l.get_tail_node()->prev->value == 20);
+            assert(l.get_head_node()->next->next->value == 30);
+            assert(l.get_tail_node()->prev->prev->value == 10);
+            assert(l.get_head_node()->next->next->next == l.get_empty_node());
+            assert(l.get_tail_node()->prev->prev->prev == l.get_empty_node());
+
+            assert(l.get_head_node()->next->prev == l.get_head_node());
+            assert(l.get_tail_node()->prev->next == l.get_tail_node());            
+
+            assert(l.get_head_node()->prev == l.get_empty_node());
+            assert(l.get_tail_node()->next == l.get_empty_node());
+
+            assert(l.get_node(0)->value == 10 && l.get_node(1)->value == 20 && l.get_node(2)->value == 30);
         }
 
         //생성자
         {
             L l{};
+            assert(l.is_empty());
             assert(l.get_size() == 0);
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
         }
 
         //생성자(초기화 리스트)
         {
             L l{E{10}, E{20}, E{30}};
+            assert(!l.is_empty());
             assert(l.get_size() == 3);
             assert(l.get(0) == 10);
             assert(l.get(1) == 20);
             assert(l.get(2) == 30);
-            assert(l.m_head->value == 10);
-            assert(l.m_tail->value == 30);
-            assert(l.m_head->next->value == 20);
-            assert(l.m_tail->prev->value == 20);
-            assert(l.m_head->next->prev == l.m_head);
-            assert(l.m_head->next->next == l.m_tail);
+            assert(l.get_head_node()->value == 10);
+            assert(l.get_tail_node()->value == 30);
+            assert(l.get_head_node()->next->value == 20);
+            assert(l.get_tail_node()->prev->value == 20);
+            assert(l.get_head_node()->next->prev == l.get_head_node());
+            assert(l.get_head_node()->next->next == l.get_tail_node());
 
-            L l2{{E{10}}};              //원소가 하나인 경우
+            L l2{E{10}};              //원소가 하나인 경우
+            assert(!l2.is_empty());
             assert(l2.get_size() == 1);
             assert(l2.get(0) == 10);
-            assert(l2.m_head == l2.m_tail);
-            assert(l2.m_head->prev == nullptr);
-            assert(l2.m_head->next == nullptr);
+            assert(l2.get_head_node() == l2.get_tail_node());
+            assert(l2.get_head_node()->prev == l2.get_empty_node());
+            assert(l2.get_head_node()->next == l2.get_empty_node());
 
-            L l3{{}};                   //원소가 없는 경우
+            L l3{std::initializer_list<E>{}};                   //원소가 없는 경우
+            assert(l3.is_empty());
             assert(l3.get_size() == 0);
-            assert(l3.m_head == nullptr);
-            assert(l3.m_tail == nullptr);
+            assert(l3.get_head_node() == l3.get_empty_node());
+            assert(l3.get_tail_node() == l3.get_empty_node());
 
         }
 
@@ -415,8 +454,10 @@ namespace MIHYCore{
         {
             L l{E{10}, E{20}, E{30}};
             L copy{l};
+            assert(!l.is_empty());
             assert(l.get_size() == 3);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+            assert(!copy.is_empty());
             assert(copy.get_size() == 3);
             assert(copy.get(0) == 10 && copy.get(1) == 20 && copy.get(2) == 30);
         }
@@ -425,7 +466,9 @@ namespace MIHYCore{
         {
             L l{E{10}, E{20}, E{30}};
             L move{std::move(l)};
+            assert(l.is_empty());
             assert(l.get_size() == 0);
+            assert(!move.is_empty());
             assert(move.get_size() == 3);
             assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
         }
@@ -467,17 +510,209 @@ namespace MIHYCore{
             L l{E{10}, E{20}, E{30}};
             L move{};
             move = std::move(l);
+            assert(l.is_empty());
             assert(l.get_size() == 0);
+            assert(!move.is_empty());
             assert(move.get_size() == 3);
             assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
         }
 
-        //Iterator 생성자
+        //Iterator begin, end
         {
+
+            L l{E{10}, E{20}, E{30}, E{40}};
+
+            //begin
+            L::Iterator                 iterator_begin{l.begin()};
+            L::Const_Iterator           const_iterator_begin{l.cbegin()};
+            L::Reverse_Iterator         reverse_iterator_begin{l.rbegin()};
+            L::Const_Reverse_Iterator   const_reverse_iterator_begin{l.crbegin()};
+
+            //end
+            L::Iterator                 iterator_end{l.end()};
+            L::Const_Iterator           const_iterator_end{l.cend()};
+            L::Reverse_Iterator         reverse_iterator_end{l.rend()};
+            L::Const_Reverse_Iterator   const_reverse_iterator_end{l.crend()};
+
+            assert(iterator_begin.get_node() == l.get_head_node());
+            assert(const_iterator_begin.get_node() == l.get_head_node());
+            assert(reverse_iterator_begin.get_node() == l.get_tail_node());
+            assert(const_reverse_iterator_begin.get_node() == l.get_tail_node());
+
+            assert(iterator_end.get_node() == l.get_empty_node());
+            assert(const_iterator_end.get_node() == l.get_empty_node());
+            assert(reverse_iterator_end.get_node() == l.get_empty_node());
+            assert(const_reverse_iterator_end.get_node() == l.get_empty_node());
+
+        }
+
+        //Iterator 생성자, 대입, 이동 연산자
+        {
+
+            L l{E{10}, E{20}, E{30}, E{40}};
+
+            //기본 생성자
             L::Iterator                 iterator{};
             L::Const_Iterator           const_iterator{};
             L::Reverse_Iterator         reverse_iterator{};
             L::Const_Reverse_Iterator   const_reverse_iterator{};
+            assert(iterator.get_node() == nullptr);
+            assert(const_iterator.get_node() == nullptr);
+            assert(reverse_iterator.get_node() == nullptr);
+            assert(const_reverse_iterator.get_node() == nullptr);
+
+            L::Iterator                 iterator_begin{l.begin()};
+            L::Const_Iterator           const_iterator_begin{l.cbegin()};
+            L::Reverse_Iterator         reverse_iterator_begin{l.rbegin()};
+            L::Const_Reverse_Iterator   const_reverse_iterator_begin{l.crbegin()};
+
+            //복사 생성자
+            L::Iterator                 iterator_copy{iterator_begin};
+            L::Const_Iterator           const_iterator_copy{const_iterator_begin};
+            L::Reverse_Iterator         reverse_iterator_copy{reverse_iterator_begin};
+            L::Const_Reverse_Iterator   const_reverse_iterator_copy{const_reverse_iterator_begin};
+
+            assert(iterator_copy.get_node() == l.get_head_node());
+            assert(const_iterator_copy.get_node() == l.get_head_node());
+            assert(reverse_iterator_copy.get_node() == l.get_tail_node());
+            assert(const_reverse_iterator_copy.get_node() == l.get_tail_node());
+
+            //이동 생성자
+            L::Iterator                 iterator_move{std::move(iterator_begin)};
+            L::Const_Iterator           const_iterator_move{std::move(const_iterator_begin)};
+            L::Reverse_Iterator         reverse_iterator_move{std::move(reverse_iterator_begin)};
+            L::Const_Reverse_Iterator   const_reverse_iterator_move{std::move(const_reverse_iterator_begin)};
+
+            assert(iterator_move.get_node() == l.get_head_node());
+            assert(const_iterator_move.get_node() == l.get_head_node());
+            assert(reverse_iterator_move.get_node() == l.get_tail_node());
+            assert(const_reverse_iterator_move.get_node() == l.get_tail_node());
+
+            //대입 연산자
+            iterator_begin                  = iterator_copy;
+            const_iterator_begin            = const_iterator_copy;
+            reverse_iterator_begin          = reverse_iterator_copy;
+            const_reverse_iterator_begin    = const_reverse_iterator_copy;
+
+            assert(iterator_begin.get_node() == l.get_head_node());
+            assert(const_iterator_begin.get_node() == l.get_head_node());
+            assert(reverse_iterator_begin.get_node() == l.get_tail_node());
+            assert(const_reverse_iterator_begin.get_node() == l.get_tail_node());
+
+            //이동 연산자
+            L::Iterator                 iterator_move_assign{std::move(iterator_begin)};
+            L::Const_Iterator           const_iterator_move_assign{std::move(const_iterator_begin)};
+            L::Reverse_Iterator         reverse_iterator_move_assign{std::move(reverse_iterator_begin)};
+            L::Const_Reverse_Iterator   const_reverse_iterator_move_assign{std::move(const_reverse_iterator_begin)};
+
+            assert(iterator_move_assign.get_node() == l.get_head_node());
+            assert(const_iterator_move_assign.get_node() == l.get_head_node());
+            assert(reverse_iterator_move_assign.get_node() == l.get_tail_node());
+            assert(const_reverse_iterator_move_assign.get_node() == l.get_tail_node());
+
+        }
+
+        //Iterator *, ->, ==, !=, ++, --
+        {
+
+            L l{E{10}, E{20}, E{30}, E{40}};
+
+            L::Iterator                 iterator{l.begin()};
+            L::Const_Iterator           const_iterator{l.cbegin()};
+            L::Reverse_Iterator         reverse_iterator{l.rbegin()};
+            L::Const_Reverse_Iterator   const_reverse_iterator{l.crbegin()};
+
+            //operator*
+            assert(*iterator == 10);
+            assert(*const_iterator == 10);
+            assert(*reverse_iterator == 40);
+            assert(*const_reverse_iterator == 40);
+
+            //operator->
+            assert(iterator->value == 10);
+            assert(const_iterator->value == 10);
+            assert(reverse_iterator->value == 40);
+            assert(const_reverse_iterator->value == 40);
+
+            //operator==, operator!=
+            assert(iterator == l.begin());
+            assert(iterator != l.end());
+            assert(const_iterator == l.cbegin());
+            assert(const_iterator != l.cend());
+            assert(reverse_iterator == l.rbegin());
+            assert(reverse_iterator != l.rend());
+            assert(const_reverse_iterator == l.crbegin());
+            assert(const_reverse_iterator != l.crend());
+
+            //operator++, operator++(int)
+            ++iterator;
+            ++const_iterator;
+            ++reverse_iterator;
+            ++const_reverse_iterator;
+
+            assert(*(iterator++) == 20);
+            assert(*(const_iterator++) == 20);
+            assert(*(reverse_iterator++) == 30);
+            assert(*(const_reverse_iterator++) == 30);
+
+            assert(*iterator == 30);
+            assert(*const_iterator == 30);
+            assert(*reverse_iterator == 20);
+            assert(*const_reverse_iterator == 20);
+
+            assert(*(++iterator) == 40);
+            assert(*(++const_iterator) == 40);
+            assert(*(++reverse_iterator) == 10);
+            assert(*(++const_reverse_iterator) == 10);
+
+            //operator--, operator--(int)
+            --iterator;
+            --const_iterator;
+            --reverse_iterator;
+            --const_reverse_iterator;
+
+            assert(*(iterator--) == 30);
+            assert(*(const_iterator--) == 30);
+            assert(*(reverse_iterator--) == 20);
+            assert(*(const_reverse_iterator--) == 20);
+
+            assert(*iterator == 20);
+            assert(*const_iterator == 20);
+            assert(*reverse_iterator == 30);
+            assert(*const_reverse_iterator == 30);
+
+            assert(*(--iterator) == 10);
+            assert(*(--const_iterator) == 10);
+            assert(*(--reverse_iterator) == 40);
+            assert(*(--const_reverse_iterator) == 40);
+
+        }
+
+        //Iterator foreach
+        {
+
+            L l{E{10}, E{20}, E{30}, E{40}};
+            L temp{};
+
+            for(auto& e : l){ temp.push_back(e); }
+            assert(temp.get_size() == 4);
+            assert(temp.get(0) == 10 && temp.get(1) == 20 && temp.get(2) == 30 && temp.get(3) == 40);
+
+            temp.clear();
+            for(const auto& e : l){ temp.push_back(e); }
+            assert(temp.get_size() == 4);
+            assert(temp.get(0) == 10 && temp.get(1) == 20 && temp.get(2) == 30 && temp.get(3) == 40);
+
+            temp.clear();
+            for(auto& e : MIHYIterator_ForEach_Reverse<L>(l)){ temp.push_back(e); }
+            assert(temp.get_size() == 4);
+            assert(temp.get(0) == 40 && temp.get(1) == 30 && temp.get(2) == 20 && temp.get(3) == 10);
+
+            temp.clear();
+            for(const auto& e : MIHYIterator_ForEach_Reverse<L>(l)){ temp.push_back(e); }
+            assert(temp.get_size() == 4);
+            assert(temp.get(0) == 40 && temp.get(1) == 30 && temp.get(2) == 20 && temp.get(3) == 10);
+
         }
 
         //push_back(lvalue)
@@ -575,17 +810,18 @@ namespace MIHYCore{
             l.push_back(std::move(move));
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
             assert(move.get_size() == 0);
-            assert(move.get_head_node() == nullptr);
-            assert(move.get_tail_node() == nullptr);
+            assert(move.get_head_node() == move.get_empty_node());
+            assert(move.get_tail_node() == move.get_empty_node());
 
             L move2{E{40}};                 //비지 않은 컨테이너로 이동
             l.push_back(std::move(move2));
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
             assert(move2.get_size() == 0);
-            assert(move2.get_head_node() == nullptr);
-            assert(move2.get_tail_node() == nullptr);
+            assert(move2.get_head_node() == move2.get_empty_node());
+            assert(move2.get_tail_node() == move2.get_empty_node());
 
         }
+
         //push_back(Iterator)
         {
 
@@ -666,8 +902,8 @@ namespace MIHYCore{
         }
 
         if(l.get_size() == 0){
-            assert(l.get_head_node() == nullptr);
-            assert(l.get_tail_node() == nullptr);
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
         }
 
         if(l.get_size() == 1){
@@ -696,8 +932,8 @@ namespace MIHYCore{
         }
 
         if(l.get_size() == 0){
-            assert(l.get_head_node() == nullptr);
-            assert(l.get_tail_node() == nullptr);
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
         }
 
         if(l.get_size() == 1){

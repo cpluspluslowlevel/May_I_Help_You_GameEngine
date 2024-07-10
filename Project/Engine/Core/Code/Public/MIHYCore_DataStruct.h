@@ -921,29 +921,27 @@ namespace MIHYCore{
 
         private:
 
-            NODE*   m_head;
-            NODE*   m_tail;
+            NODE   m_empty_node;        //next를 head로 prev를 tail로 사용합니다. 자체로 하나의 노드입니다. value는 사용하지 않습니다.
+                                        //첫 번째 노드의 이전 노드이자 마지막 노드의 다음 노드입니다.
+                                        //반복자에서 첫 노드 이전이나 마지막 노드 이후 노드를 가리킬 때가 있는데 그 때 이 노드를 가리키면서 nullptr를 가리키지 않게 합니다.
             UInt64  m_size;
 
         public:
 
-            MIHYList() : m_head{nullptr}, m_tail{nullptr}, m_size{0}{}
+            MIHYList() : m_empty_node{Type{}, &m_empty_node, &m_empty_node}, m_size{0}{}
 
-            MIHYList(std::initializer_list<Type> list) : m_head{nullptr}, m_tail{nullptr}, m_size{list.size()}{
+            MIHYList(std::initializer_list<Type> list) : m_empty_node{Type{}, &m_empty_node, &m_empty_node}, m_size{list.size()}{
 
                 if(list.size() == 0){
                     return;
                 }
                 
                 auto iter{list.begin()};
-                m_head = m_tail = new NODE{std::move(*iter), nullptr, nullptr};
-
-                ++iter;
                 auto iter_end{list.end()};
                 while(iter != iter_end){
 
-                    m_tail = new NODE{std::move(*iter), m_tail, nullptr};
-                    m_tail->prev->next = m_tail;
+                    m_empty_node.prev = new NODE{std::move(*iter), m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     ++iter;
 
@@ -951,20 +949,13 @@ namespace MIHYCore{
             
             }
 
-            MIHYList(const MIHYList& lvalue) : m_head{nullptr}, m_tail{nullptr}, m_size{lvalue.m_size}{
+            MIHYList(const MIHYList& lvalue) : m_empty_node{Type{}, &m_empty_node, &m_empty_node}, m_size{lvalue.m_size}{
 
-                if(lvalue.m_size == 0){
-                    return;
-                }
+                auto loop{lvalue.m_empty_node.next};
+                while(loop != lvalue.get_empty_node()){
 
-                auto loop{lvalue.m_head};
-                m_head = m_tail = new NODE{loop->value, nullptr, nullptr};
-
-                loop = loop->next;
-                while(loop != nullptr){
-
-                    m_tail = new NODE{loop->value, m_tail, nullptr};
-                    m_tail->prev->next = m_tail;
+                    m_empty_node.prev               = new NODE{loop->value, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                     loop = loop->next;
 
@@ -972,46 +963,56 @@ namespace MIHYCore{
 
             }
 
-            MIHYList(MIHYList&& rvalue) : m_head{rvalue.m_head}, m_tail{rvalue.m_tail}, m_size{rvalue.m_size}{
-                rvalue.m_head = rvalue.m_tail = nullptr;
+            MIHYList(MIHYList&& rvalue) : m_empty_node{Type{}, rvalue.m_empty_node.prev, rvalue.m_empty_node.next}, m_size{rvalue.m_size}{
+
+                m_empty_node.prev->next = m_empty_node.next->prev = &m_empty_node;
+
+                rvalue.m_empty_node.prev = rvalue.m_empty_node.next = &rvalue.m_empty_node;
                 rvalue.m_size = 0;
+                
+            }
+
+            template<typename Iterator>
+            MIHYList(Iterator begin, Iterator end) : m_empty_node{Type{}, &m_empty_node, &m_empty_node}, m_size{0}{
+
+                while(begin != end){
+
+                    m_empty_node.prev               = new NODE{*begin, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev->prev->next   = m_empty_node.prev;
+
+                    ++begin;
+
+                }
+
             }
 
             MIHYList& operator=(const MIHYList& lvalue){
 
 
-                auto    loop{m_head};
-                auto    copy_loop{lvalue.m_head};
-                NODE*   next{m_head};
+                auto    loop{m_empty_node.next};
+                auto    lvalue_copy_loop{lvalue.m_empty_node.next};
 
                 //이미 생성된 노드의 크기만큼 복사합니다.
                 const UInt64 overlap_count{std::min(m_size, lvalue.m_size)};
                 for(UInt64 i = 0; i < overlap_count; ++i){
 
-                    loop->value = copy_loop->value;
-                    next        = loop->next;
+                    loop->value = lvalue_copy_loop->value;
 
-                    loop        = loop->next;
-                    copy_loop   = copy_loop->next;
+                    loop                = loop->next;
+                    lvalue_copy_loop    = lvalue_copy_loop->next;
 
                 }
 
                 //복사된 노드를 제외한 나머지 노드를 복사합니다.
                 //복사할 노드가 남아있을 경우입니다.
-                if(copy_loop != nullptr){
+                if(lvalue_copy_loop != lvalue.get_empty_node()){
 
-                    //리스트가 비어있을 경우 하나의 노드를 생성하는 처리를 해두어 밑에 while문에 리스트가 비어있는지 검사하는 if문을 작성하지않게 합니다.
-                    if(m_tail == nullptr){
-                        m_head = m_tail = new NODE{copy_loop->value, nullptr, nullptr};
-                        copy_loop = copy_loop->next;            //복사할 노드가 아직 남아있는 경우이므로 copy_loop가 nullptr이 아닙니다.
-                    }
+                    while(lvalue_copy_loop != lvalue.get_empty_node()){
 
-                    while(copy_loop != nullptr){
+                        m_empty_node.prev               = new NODE{lvalue_copy_loop->value, m_empty_node.prev, &m_empty_node};
+                        m_empty_node.prev->prev->next   = m_empty_node.prev;
 
-                        m_tail = new NODE{copy_loop->value, m_tail, nullptr};
-                        m_tail->prev->next = m_tail;
-
-                        copy_loop = copy_loop->next;
+                        lvalue_copy_loop = lvalue_copy_loop->next;
                         
                     }
 
@@ -1021,21 +1022,17 @@ namespace MIHYCore{
 
                     //m_size >= lvalue.m_size인 경우라 음수가 되지 않습니다.
                     UInt64 remove_count{m_size - lvalue.m_size};
-                    if(remove_count != 0){
+                    for(UInt64 i = 0; i < remove_count; ++i){
 
-                        for(UInt64 i = 0; i < remove_count; ++i){
-
-                            auto temp{m_tail};
-                            m_tail = m_tail->prev;
-                            delete temp;
-
-                        }
+                        auto temp{m_empty_node.prev};
+                        m_empty_node.prev = m_empty_node.prev->prev;
+                        delete temp;
 
                     }
-                    
+
                     m_size = lvalue.m_size;
-                    if(m_size == 0){                //노드를 제거하면서 m_tail만 갱신했으므로 m_head가 변경되야할 사항을 예외처리 합니다.
-                        m_head = nullptr;
+                    if(m_size == 0){                //노드를 제거하면서 tail만 갱신했으므로 head가 변경되야할 사항을 예외처리 합니다.
+                        m_empty_node.next = &m_empty_node;
                     }
 
                 }
@@ -1049,44 +1046,22 @@ namespace MIHYCore{
 
                 clear();
 
-                m_head = rvalue.m_head;
-                m_tail = rvalue.m_tail;
-                m_size = rvalue.m_size;
+                m_empty_node.prev   = rvalue.m_empty_node.prev;
+                m_empty_node.next   = rvalue.m_empty_node.next;
+                m_empty_node.prev->next = m_empty_node.next->prev = &m_empty_node;
+                m_size              = rvalue.m_size;
 
-                rvalue.m_head = rvalue.m_tail = nullptr;
+                rvalue.m_empty_node.prev = rvalue.m_empty_node.next = &rvalue.m_empty_node;
                 rvalue.m_size = 0;
 
                 return *this;
 
             }
 
-            /// @brief 모든 원소를 삭제합니다.
-            void clear(){
-
-                auto loop{m_head};
-                while(loop != nullptr){
-                    
-                    auto temp{loop};
-                    loop = loop->next;
-                    delete temp;
-
-                }
-
-                m_head = m_tail = nullptr;
-
-                m_size = 0;
-
-            }
-
-
             void push_back(const Type& lvalue){
 
-                if(m_size == 0){
-                    m_head = m_tail = new NODE{lvalue, nullptr, nullptr};
-                }else{
-                    m_tail = new NODE{lvalue, m_tail, nullptr};
-                    m_tail->prev->next = m_tail;
-                }
+                m_empty_node.prev               = new NODE{lvalue, m_empty_node.prev, &m_empty_node};
+                m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                 ++m_size;
 
@@ -1094,12 +1069,8 @@ namespace MIHYCore{
 
             void push_back(Type&& rvalue){
 
-                if(m_size == 0){
-                    m_head = m_tail = new NODE{std::move(rvalue), nullptr, nullptr};
-                }else{
-                    m_tail = new NODE{std::move(rvalue), m_tail, nullptr};
-                    m_tail->prev->next = m_tail;
-                }
+                m_empty_node.prev               = new NODE{std::move(rvalue), m_empty_node.prev, &m_empty_node};
+                m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                 ++m_size;
 
@@ -1107,23 +1078,12 @@ namespace MIHYCore{
 
             void push_back(std::initializer_list<Type> list){
 
-                if(list.size() == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
-                    return;
-                }
-
                 auto iter{list.begin()};
-
-                //첫 원소가 삽입 될 때를 따로 처리해야 밑에 while문에 if문을 넣지 않을 수 있습니다.
-                //list.size()가 0인 경우를 위에서 처리해서 iter가 list.end()이지 않습니다.
-                if(m_size == 0){
-                    m_head = m_tail = new NODE{std::move(iter->value), nullptr, nullptr};
-                    ++iter;
-                }
 
                 while(iter != list.end()){
 
-                    m_tail = new NODE{std::move(iter->value), m_tail, nullptr};
-                    m_tail->prev->next = m_tail;
+                    m_empty_node.prev = new NODE{std::move(iter->value), m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     ++iter;
 
@@ -1135,25 +1095,13 @@ namespace MIHYCore{
 
             void push_back(const MIHYList& lvalue){
 
-                if(lvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
-                    return;
-                }
+                auto lvalue_node{lvalue.m_empty_node.next};
+                while(lvalue_node != &lvalue.m_empty_node){
 
-                auto node{lvalue.m_head};
+                    m_empty_node.prev = new NODE{lvalue_node->value, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev->prev->next = m_empty_node.prev;
 
-                //첫 원소가 삽입 될 때를 따로 처리해야 밑에 while문에 if문을 넣지 않을 수 있습니다.
-                //list.size()가 0인 경우를 위에서 처리해서 iter가 list.end()이지 않습니다.
-                if(m_size == 0){
-                    m_head = m_tail = new NODE{node->value, nullptr, nullptr};
-                    node = node->next;
-                }
-
-                while(node != nullptr){
-
-                    m_tail = new NODE{node->value, m_tail, nullptr};
-                    m_tail->prev->next = m_tail;
-
-                    node = node->next;
+                    lvalue_node = lvalue_node->next;
 
                 }
 
@@ -1167,31 +1115,89 @@ namespace MIHYCore{
                     return;
                 }
 
-                //빈 컨테이너일 경우와 아닌 경우를 나누어 처리합니다.
-                if(m_size == 0){
-                    m_head = rvalue.m_head;
-                    m_tail = rvalue.m_tail;
-                    m_size = rvalue.m_size;
-                }else{
+                //위에서 두 리스트가 비어있을 때에 대한 예외를 처리했으므로 여기선 두 리스트가 반드시 하나 이상의 원소를 가지고 있습니다.
 
-                    //위에서 두 리스트가 비어있을 때에 대한 예외를 처리했으므로 여기선 두 리스트가 반드시 하나 이상의 원소를 가지고 있습니다.
+                m_empty_node.prev->next        = rvalue.m_empty_node.next;        //m_tail과 이동 대상의 head를 서로 연결합니다.
+                rvalue.m_empty_node.next->prev = m_empty_node.prev;
+                
+                m_empty_node.prev = rvalue.m_empty_node.prev;                     //rvalue의 노드들이 뒤에 붙었으니 m_tail을 rvalue의 m_tail로 갱신합니다.
 
-                    m_tail->next        = rvalue.m_head;        //m_tail과 이동 대상의 head를 서로 연결합니다.
-                    rvalue.m_head->prev = m_tail;
-                    
-                    m_tail = rvalue.m_tail;                     //rvalue의 노드들이 뒤에 붙었으니 m_tail을 rvalue의 m_tail로 갱신합니다.
+                m_size += rvalue.m_size;
 
-                    m_size += rvalue.m_size;
-                    
-                }
 
-                rvalue.m_head = rvalue.m_tail = nullptr;
+                rvalue.m_empty_node.prev = rvalue.m_empty_node.next = &rvalue.m_empty_node;
                 rvalue.m_size = 0;
 
             }
 
             template<typename Iterator>
             void push_back(Iterator begin, Iterator end){
+            }
+
+            /// @brief 모든 원소를 삭제합니다.
+            void clear(){
+
+                auto loop{m_empty_node.next};
+                while(loop != &m_empty_node){
+                    
+                    auto temp{loop};
+                    loop = loop->next;
+                    delete temp;
+
+                }
+
+                m_empty_node.prev = m_empty_node.next = &m_empty_node;
+
+                m_size = 0;
+
+            }
+
+            /// @brief      컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return     첫 요소를 가리키는 반복자.
+            Iterator begin(){
+                return Iterator{this, m_empty_node.next};
+            }
+
+            /// @brief      반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return     반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Iterator end(){
+                return Iterator{this, &m_empty_node};
+            }
+
+            /// @brief      컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return     첫 요소를 가리키는 반복자.
+            Const_Iterator cbegin() const{
+                return Const_Iterator{this, m_empty_node.next};
+            }
+
+            /// @brief      반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return     반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Const_Iterator cend() const{
+                return Const_Iterator{this, &m_empty_node};
+            }
+
+            /// @brief      역순으로 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return     첫 요소를 가리키는 반복자.
+            Reverse_Iterator rbegin(){
+                return Reverse_Iterator{this, m_empty_node.prev};
+            }
+
+            /// @brief      반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return     반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Reverse_Iterator rend(){
+                return Reverse_Iterator{this, &m_empty_node};
+            }
+
+            /// @brief      역순으로 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
+            /// @return     첫 요소를 가리키는 반복자.
+            Const_Reverse_Iterator crbegin() const{
+                return Const_Reverse_Iterator{this, m_empty_node.prev};
+            }
+
+            /// @brief      반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
+            /// @return     반복자가 범위 밖을 나갔는지를 나타내는 반복자
+            Const_Reverse_Iterator crend() const{
+                return Const_Reverse_Iterator{this, &m_empty_node};
             }
 
             /// @brief 원소의 개수를 반환합니다.
@@ -1205,7 +1211,7 @@ namespace MIHYCore{
 
                 assert(index < m_size);
 
-                auto result{m_head};
+                auto result{m_empty_node.next};
 
                 for(UInt64 i = 0; i < index; ++i){
                     result = result->next;
@@ -1219,7 +1225,7 @@ namespace MIHYCore{
 
                 assert(index < m_size);
 
-                auto result{m_head};
+                auto result{m_empty_node.next};
 
                 for(UInt64 i = 0; i < index; ++i){
                     result = result->next;
@@ -1230,11 +1236,19 @@ namespace MIHYCore{
             }
 
             const NODE* get_head_node() const{
-                return m_head;
+                return m_empty_node.next;
             }
 
             const NODE* get_tail_node() const{
-                return m_tail;
+                return m_empty_node.prev;
+            }
+
+            const NODE* get_empty_node() const{
+                return &m_empty_node;
+            }
+
+            bool is_empty() const{
+                return m_size == 0;
             }
 
         private:
@@ -1247,24 +1261,18 @@ namespace MIHYCore{
         template<typename Type>
         class MIHYList<Type>::Iterator{
         public:
+
             Iterator() = default;
             
-            Iterator(const Iterator& lvalue) : m_node{lvalue.m_node}{}
+            Iterator(const Iterator& lvalue) = default;
             
-            Iterator(Iterator&& rvalue) noexcept : m_node{rvalue.m_node}{ rvalue.m_node = nullptr; }
+            Iterator(Iterator&& rvalue) noexcept = default;
             
             ~Iterator() = default;
             
-            Iterator& operator=(const Iterator& lvalue){
-                m_node = lvalue.m_node;
-                return *this;
-            }
+            Iterator& operator=(const Iterator& lvalue) = default;
 
-            Iterator& operator=(Iterator&& rvalue) noexcept{
-                m_node          = rvalue.m_node;
-                rvalue.m_node   = nullptr;
-                return *this;
-            }
+            Iterator& operator=(Iterator&& rvalue) noexcept = default;
 
             Iterator& operator++(){
                 m_node = m_node->next;
@@ -1273,7 +1281,7 @@ namespace MIHYCore{
 
             Iterator operator++(int){
                 Iterator temp{*this};
-                m_node = m_node->next;
+                m_node      = m_node->next;
                 return temp;
             }
 
@@ -1304,11 +1312,24 @@ namespace MIHYCore{
                 return &m_node->value;
             }
 
+            bool operator==(const Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            bool operator!=(const Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            const NODE* get_node() const{
+                return m_node;
+            }
+
         private:
 
-            Iterator(NODE* node) : m_node{node}{}
+            Iterator(MIHYList<Type>* list, NODE* node) : m_list{list}, m_node{node}{}
 
-            NODE* m_node;
+            MIHYList<Type>* m_list;
+            NODE*           m_node;
 
             friend class MIHYList<Type>;
             
@@ -1320,22 +1341,15 @@ namespace MIHYCore{
 
             Const_Iterator() = default;
             
-            Const_Iterator(const Const_Iterator& lvalue) : m_node{lvalue.m_node}{}
+            Const_Iterator(const Const_Iterator& lvalue) = default;
             
-            Const_Iterator(Const_Iterator&& rvalue) noexcept : m_node{rvalue.m_node}{ rvalue.m_node = nullptr; }
+            Const_Iterator(Const_Iterator&& rvalue) noexcept = default;
             
             ~Const_Iterator() = default;
             
-            Const_Iterator& operator=(const Const_Iterator& lvalue){
-                m_node = lvalue.m_node;
-                return *this;
-            }
+            Const_Iterator& operator=(const Const_Iterator& lvalue) = default;
 
-            Const_Iterator& operator=(Const_Iterator&& rvalue) noexcept{
-                m_node          = rvalue.m_node;
-                rvalue.m_node   = nullptr;
-                return *this;
-            }
+            Const_Iterator& operator=(Const_Iterator&& rvalue) noexcept = default;
 
             Const_Iterator& operator++(){
                 m_node = m_node->next;
@@ -1366,12 +1380,25 @@ namespace MIHYCore{
             const Type* operator->() const{
                 return &m_node->value;
             }
-            
+
+            bool operator==(const Const_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            bool operator!=(const Const_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            const NODE* get_node() const{
+                return m_node;
+            }
+
         private:
 
-            Const_Iterator(NODE* node) : m_node{node}{}
+            Const_Iterator(const MIHYList<Type>* list, const NODE* node) : m_list{list}, m_node{node}{}
 
-            NODE* m_node;
+            const MIHYList<Type>*   m_list;
+            const NODE*             m_node;
 
             friend class MIHYList<Type>;
 
@@ -1382,22 +1409,15 @@ namespace MIHYCore{
         public:
             Reverse_Iterator() = default;
             
-            Reverse_Iterator(const Reverse_Iterator& lvalue) : m_node{lvalue.m_node}{}
+            Reverse_Iterator(const Reverse_Iterator& lvalue) = default;
             
-            Reverse_Iterator(Reverse_Iterator&& rvalue) noexcept : m_node{rvalue.m_node}{ rvalue.m_node = nullptr;}
+            Reverse_Iterator(Reverse_Iterator&& rvalue) noexcept = default;
             
             ~Reverse_Iterator() = default;
             
-            Reverse_Iterator& operator=(const Reverse_Iterator& lvalue){
-                m_node = lvalue.m_node;
-                return *this;
-            }
+            Reverse_Iterator& operator=(const Reverse_Iterator& lvalue) = default;
 
-            Reverse_Iterator& operator=(Reverse_Iterator&& rvalue) noexcept{
-                m_node          = rvalue.m_node;
-                rvalue.m_node   = nullptr;
-                return *this;
-            }
+            Reverse_Iterator& operator=(Reverse_Iterator&& rvalue) noexcept = default;
 
             Reverse_Iterator& operator++(){
                 m_node = m_node->prev;
@@ -1437,11 +1457,24 @@ namespace MIHYCore{
                 return &m_node->value;
             }
 
+            bool operator==(const Reverse_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            bool operator!=(const Reverse_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            const NODE* get_node() const{
+                return m_node;
+            }
+
         private:
 
-            Reverse_Iterator(NODE* node) : m_node{node}{}
+            Reverse_Iterator(MIHYList<Type>* list, NODE* node) : m_list{list}, m_node{node}{}
 
-            NODE* m_node;
+            MIHYList<Type>* m_list;
+            NODE*           m_node;
 
             friend class MIHYList<Type>;
             
@@ -1452,22 +1485,15 @@ namespace MIHYCore{
         public:
             Const_Reverse_Iterator() = default;
             
-            Const_Reverse_Iterator(const Const_Reverse_Iterator& lvalue) : m_node{lvalue.m_node}{}
+            Const_Reverse_Iterator(const Const_Reverse_Iterator& lvalue) = default;
             
-            Const_Reverse_Iterator(Const_Reverse_Iterator&& rvalue) noexcept : m_node{rvalue}{ rvalue = nullptr; }
+            Const_Reverse_Iterator(Const_Reverse_Iterator&& rvalue) noexcept = default;
             
             ~Const_Reverse_Iterator() = default;
             
-            Const_Reverse_Iterator& operator=(const Const_Reverse_Iterator& lvalue){
-                m_node = lvalue.m_node;
-                return *this;
-            }
+            Const_Reverse_Iterator& operator=(const Const_Reverse_Iterator& lvalue) = default;
 
-            Const_Reverse_Iterator& operator=(Const_Reverse_Iterator&& rvalue) noexcept{
-                m_node          = rvalue.m_node;
-                rvalue.m_node   = nullptr;
-                return *this;
-            }
+            Const_Reverse_Iterator& operator=(Const_Reverse_Iterator&& rvalue) noexcept = default;
 
             Const_Reverse_Iterator& operator++(){
                 m_node = m_node->prev;
@@ -1499,11 +1525,24 @@ namespace MIHYCore{
                 return &m_node->value;
             }
 
+            bool operator==(const Const_Reverse_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            bool operator!=(const Const_Reverse_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            const NODE* get_node() const{
+                return m_node;
+            }
+
         private:
 
-            Const_Reverse_Iterator(NODE* node) : m_node{node}{}
+            Const_Reverse_Iterator(const MIHYList<Type>* list, const NODE* node) : m_list{list}, m_node{node}{}
 
-            NODE* m_node;
+            const MIHYList<Type>*   m_list;
+            const NODE*             m_node;
 
             friend class MIHYList<Type>;
 
