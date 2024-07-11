@@ -1188,6 +1188,17 @@ namespace MIHYCore{
 
             template<typename Iterator>
             void push_back(Iterator begin, Iterator end){
+
+                while(begin != end){
+
+                    m_empty_node.prev = new NODE{*begin, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev->prev->next = m_empty_node.prev;
+
+                    ++begin;
+                    ++m_size;
+
+                }
+
             }
 
             /// @brief 모든 원소를 삭제합니다.
