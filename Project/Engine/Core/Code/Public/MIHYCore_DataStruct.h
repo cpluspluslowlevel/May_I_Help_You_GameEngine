@@ -981,13 +981,71 @@ namespace MIHYCore{
                     m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                     ++begin;
+                    ++m_size;
 
                 }
 
             }
 
-            MIHYList& operator=(const MIHYList& lvalue){
+            ~MIHYList(){
+                clear();
+            }
 
+            MIHYList& operator=(std::initializer_list<Type> list){
+
+                auto    loop{m_empty_node.next};
+                auto    iter{list.begin()};
+
+                //이미 생성된 노드의 크기만큼 복사합니다.
+                const UInt64 overlap_count{std::min(m_size, list.size())};
+                for(UInt64 i = 0; i < overlap_count; ++i){
+
+                    loop->value = iter->value;
+
+                    loop = loop->next;
+                    ++iter;
+
+                }
+
+                //복사된 노드를 제외한 나머지 노드를 복사합니다.
+                //복사할 노드가 남아있을 경우입니다.
+                if(iter != list.end()){
+
+                    while(iter != list.end()){
+
+                        m_empty_node.prev               = new NODE{iter->value, m_empty_node.prev, &m_empty_node};
+                        m_empty_node.prev->prev->next   = m_empty_node.prev;
+
+                        ++iter;
+                        
+                    }
+
+                    m_size = list.size();
+
+                }else{      //이미 가지고 있던 노드의 개수가 lvalue의 노드 개수보다 많거나 같은 경우
+
+                    //m_size >= lvalue.m_size인 경우라 음수가 되지 않습니다.
+                    UInt64 remove_count{m_size - list.size()};
+                    for(UInt64 i = 0; i < remove_count; ++i){
+
+                        auto temp{m_empty_node.prev};
+                        m_empty_node.prev = m_empty_node.prev->prev;
+                        delete temp;
+
+                    }
+
+                    m_size = list.size();
+                    if(m_size == 0){                //노드를 제거하면서 tail만 갱신했으므로 head가 변경되야할 사항을 예외처리 합니다.
+                        m_empty_node.next = &m_empty_node;
+                    }
+
+                }
+
+                return *this;
+
+            }
+
+            MIHYList& operator=(const MIHYList& lvalue){
 
                 auto    loop{m_empty_node.next};
                 auto    lvalue_copy_loop{lvalue.m_empty_node.next};
@@ -1037,7 +1095,6 @@ namespace MIHYCore{
 
                 }
 
-
                 return *this;
 
             }
@@ -1079,7 +1136,6 @@ namespace MIHYCore{
             void push_back(std::initializer_list<Type> list){
 
                 auto iter{list.begin()};
-
                 while(iter != list.end()){
 
                     m_empty_node.prev = new NODE{std::move(iter->value), m_empty_node.prev, &m_empty_node};
@@ -1138,7 +1194,7 @@ namespace MIHYCore{
             void clear(){
 
                 auto loop{m_empty_node.next};
-                while(loop != &m_empty_node){
+                for(UInt64 i = 0; i < m_size; ++i){
                     
                     auto temp{loop};
                     loop = loop->next;

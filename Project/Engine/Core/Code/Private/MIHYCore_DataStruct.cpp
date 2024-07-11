@@ -345,8 +345,9 @@ namespace MIHYCore{
 
     };
 
-    void mihylist_unittest_copy_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> copy_list);
-    void mihylist_unittest_push_back_Initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list);
+    void mihylist_unittest_assignment_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> copy_list);
+    void mihylist_unittest_assignment_initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> copy_list);
+    void mihylist_unittest_push_back_initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list);
     void mihylist_unittest_push_back_list_lvalue_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list);
     void mihylist_unittest(){
 
@@ -473,10 +474,42 @@ namespace MIHYCore{
             assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
         }
 
+        //대입(초기화 리스트)
+        {
+            //빈 컨테이너에 대입되는 경우
+            #define f mihylist_unittest_assignment_initializer_list_test
+            f({}, {});                                                  //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 | 원소의 수가 같을 경우
+            f({}, {E{10}});                                             //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
+            f({}, {E{10}, E{20}});                                      //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
+            f({}, {E{10}, E{20}, E{30}});                               //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+
+            //m_head == m_tail인 컨테이너에 대입되는 경우
+            f({E{1}}, {});                                              //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 | 원소가 더 적을 경우
+            f({E{1}}, {E{10}});                                         //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소의 수가 같을 경우
+            f({E{1}}, {E{10}, E{20}});                                  //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
+            f({E{1}}, {E{10}, E{20}, E{30}});                           //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+
+            //m_head != m_tail인 컨테이너에 대입되는 경우
+            f({E{1}, E{2}}, {});                                        //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 |  원소가 더 적을 경우
+            f({E{1}, E{2}}, {E{10}});                                   //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  |  원소가 더 적을 경우
+            f({E{1}, E{2}}, {E{10}, E{20}});                            //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소의 수가 같을 경우
+            f({E{1}, E{2}}, {E{10}, E{20}, E{30}});                     //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+
+            //m_head != m_tail인 경우 + m_head와 m_tail사이에 원소가 있을 경우의 컨테이너에 대입되는 경우
+            auto init_list = {E{1}, E{2}, E{3}, E{4}, E{5}};
+            f(init_list, {});                                           //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 |  원소가 더 적을 경우
+            f(init_list, {E{10}});                                      //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  |  원소가 더 적을 경우
+            f(init_list, {E{10}, E{20}});                               //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 적을 경우
+            f(init_list, {E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 적을 경우
+            f(init_list, {E{10}, E{20}, E{30}, E{40}, E{50}});          //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소의 수가 같을 경우
+            f(init_list, {E{10}, E{20}, E{30}, E{40}, E{50}, E{60}});   //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 있을 경우  | 원소가 더 많을 경우
+            #undef f
+        }
+
         //대입
         {
             //빈 컨테이너에 대입되는 경우
-            #define f mihylist_unittest_copy_test
+            #define f mihylist_unittest_assignment_test
             f({}, {});                                                  //복사 대상이 비었을 경우             |  m_head와 m_tail사이에 원소가 없을 경우 | 원소의 수가 같을 경우
             f({}, {E{10}});                                             //복사 대상의 m_head == m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
             f({}, {E{10}, E{20}});                                      //복사 대상의 m_head != m_tail일 경우 | m_head와 m_tail사이에 원소가 없을 경우  | 원소가 더 많을 경우
@@ -747,28 +780,28 @@ namespace MIHYCore{
         {
 
             //빈 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({}, {});                                           //복사 대상이 빈 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({}, {E{10}});                                      //복사 대상의 m_head == m_tail인 경우
-            mihylist_unittest_push_back_Initializer_list_test({}, {E{10}, E{20}});                               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
-            mihylist_unittest_push_back_Initializer_list_test({}, {E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            mihylist_unittest_push_back_initializer_list_test({}, {});                                           //복사 대상이 빈 리스트인 경우
+            mihylist_unittest_push_back_initializer_list_test({}, {E{10}});                                      //복사 대상의 m_head == m_tail인 경우
+            mihylist_unittest_push_back_initializer_list_test({}, {E{10}, E{20}});                               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            mihylist_unittest_push_back_initializer_list_test({}, {E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
 
             //m_head == m_tail인 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}}, {});                                       //복사 대상이 빈 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}}, {E{10}});                                  //복사 대상의 m_head == m_tail인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}}, {E{10}, E{20}});                           //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}}, {E{10}, E{20}, E{30}});                    //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}}, {});                                       //복사 대상이 빈 리스트인 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}}, {E{10}});                                  //복사 대상의 m_head == m_tail인 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}}, {E{10}, E{20}});                           //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}}, {E{10}, E{20}, E{30}});                    //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
 
             //m_head != m_tail이고 사이에 노드가 없는 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}}, {});                                 //복사 대상이 빈 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}}, {E{10}});                            //복사 대상의 m_head == m_tail인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}}, {E{10}, E{20}});                     //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}}, {E{10}, E{20}, E{30}});              //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}}, {});                                 //복사 대상이 빈 리스트인 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}}, {E{10}});                            //복사 대상의 m_head == m_tail인 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}}, {E{10}, E{20}});                     //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}}, {E{10}, E{20}, E{30}});              //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
 
             //m_head != m_tail이고 사이에 노드가 있는 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}, E{3}}, {});                           //복사 대상이 빈 리스트인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}, E{3}}, {E{10}});                      //복사 대상의 m_head == m_tail인 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}, E{3}}, {E{10}, E{20}});               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
-            mihylist_unittest_push_back_Initializer_list_test({E{1}, E{2}, E{3}}, {E{10}, E{20}, E{30}});        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}, E{3}}, {});                           //복사 대상이 빈 리스트인 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}, E{3}}, {E{10}});                      //복사 대상의 m_head == m_tail인 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}, E{3}}, {E{10}, E{20}});               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            mihylist_unittest_push_back_initializer_list_test({E{1}, E{2}, E{3}}, {E{10}, E{20}, E{30}});        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
 
         }
 
@@ -860,7 +893,7 @@ namespace MIHYCore{
 
     }
 
-    void mihylist_unittest_copy_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> copy_list){
+    void mihylist_unittest_assignment_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> copy_list){
 
         MIHYList<List_Element> l{list};
         MIHYList<List_Element> copy{copy_list};
@@ -882,7 +915,28 @@ namespace MIHYCore{
 
     }
 
-    void mihylist_unittest_push_back_Initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list){
+    void mihylist_unittest_assignment_initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> copy_list){
+
+        MIHYList<List_Element> l{list};
+
+        l = copy_list;
+
+        assert(l.get_size() == copy_list.size());           //사이즈를 검사합니다.
+
+        auto    iter{copy_list.begin()};                    //원소가 제대로 들어갔는지 검사합니다.
+        UInt64  i{0};
+        while(iter != copy_list.end()){
+
+            assert(l.get(i) == *iter);
+            
+            ++iter;
+            ++i;
+            
+        }
+
+    }
+
+    void mihylist_unittest_push_back_initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list){
 
         MIHYList<List_Element> l{list};
 
@@ -941,7 +995,6 @@ namespace MIHYCore{
         }
         
     }
-
 
     }
 }
