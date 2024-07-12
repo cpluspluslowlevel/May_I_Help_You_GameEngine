@@ -351,6 +351,11 @@ namespace MIHYCore{
     void mihylist_unittest_push_back_list_lvalue_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list);
     template<typename Container>
     void mihylist_unittest_push_back_iterator_test(std::initializer_list<List_Element> list, Container container);
+    void mihylist_unittest_push_front_initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list);
+    void mihylist_unittest_push_front_list_lvalue_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list);
+    template<typename Container>
+    void mihylist_unittest_push_front_iterator_test(std::initializer_list<List_Element> list, Container container);
+    
     void mihylist_unittest(){
 
         
@@ -903,27 +908,397 @@ namespace MIHYCore{
 
         }
         
-        
-
         //push_front(lvalue)
-        //push_front(rvalue)
-        //push_front(초기화 리스트)
-        //push_front(List lvalue)
-        //push_front(List rvalue)
-        //push_front(Iterator)
+        {
 
-        //push(Index, lvalue)
-        //push(Index, rvalue)
-        //push(Index, 초기화 리스트)
-        //push(Index, List lvalue)
-        //push(Index, List rvalue)
-        //push(Index, Iterator)
-        //push(Iterator, lvalue)
-        //push(Iterator, rvalue)
-        //push(Iterator, 초기화 리스트)
-        //push(Iterator, List lvalue)
-        //push(Iterator, List rvalue)
-        //push(Iterator, Iterator)
+            E e0{10};
+            E e1{20};
+            E e2{30};
+
+            L l{};
+            l.push_front(e0);         //리스트가 비었을 경우
+            l.push_front(e1);         //m_head == m_tail일 경우
+            l.push_front(e2);         //m_head != m_tail일 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 30 && l.get(1) == 20 && l.get(2) == 10);
+
+        }
+
+        //push_front(rvalue)
+        {
+
+            L l{};
+            l.push_front(E{10});         //리스트가 비었을 경우
+            l.push_front(E{20});         //m_head == m_tail일 경우
+            l.push_front(E{30});         //m_head != m_tail일 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 30 && l.get(1) == 20 && l.get(2) == 10);
+
+        }
+
+        //push_front(초기화 리스트)
+        {
+            
+            //빈 리스트인 경우
+            #define f mihylist_unittest_push_front_initializer_list_test
+            f({}, {});                                           //복사 대상이 빈 리스트인 경우
+            f({}, {E{10}});                                      //복사 대상의 m_head == m_tail인 경우
+            f({}, {E{10}, E{20}});                               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({}, {E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head == m_tail인 리스트인 경우
+            f({E{1}}, {});                                       //복사 대상이 빈 리스트인 경우
+            f({E{1}}, {E{10}});                                  //복사 대상의 m_head == m_tail인 경우
+            f({E{1}}, {E{10}, E{20}});                           //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}}, {E{10}, E{20}, E{30}});                    //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head != m_tail이고 사이에 노드가 없는 리스트인 경우
+            f({E{1}, E{2}}, {});                                 //복사 대상이 빈 리스트인 경우
+            f({E{1}, E{2}}, {E{10}});                            //복사 대상의 m_head == m_tail인 경우
+            f({E{1}, E{2}}, {E{10}, E{20}});                     //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}, E{2}}, {E{10}, E{20}, E{30}});              //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head != m_tail이고 사이에 노드가 있는 리스트인 경우
+            f({E{1}, E{2}, E{3}}, {});                           //복사 대상이 빈 리스트인 경우
+            f({E{1}, E{2}, E{3}}, {E{10}});                      //복사 대상의 m_head == m_tail인 경우
+            f({E{1}, E{2}, E{3}}, {E{10}, E{20}});               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}, E{2}, E{3}}, {E{10}, E{20}, E{30}});        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            #undef f
+
+        }
+
+        //push_front(List lvalue)
+        {
+            
+            //빈 리스트인 경우
+            #define f mihylist_unittest_push_front_list_lvalue_test
+            f({}, {});                                           //복사 대상이 빈 리스트인 경우
+            f({}, {E{10}});                                      //복사 대상의 m_head == m_tail인 경우
+            f({}, {E{10}, E{20}});                               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({}, {E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head == m_tail인 리스트인 경우
+            f({E{1}}, {});                                       //복사 대상이 빈 리스트인 경우
+            f({E{1}}, {E{10}});                                  //복사 대상의 m_head == m_tail인 경우
+            f({E{1}}, {E{10}, E{20}});                           //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}}, {E{10}, E{20}, E{30}});                    //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head != m_tail이고 사이에 노드가 없는 리스트인 경우
+            f({E{1}, E{2}}, {});                                 //복사 대상이 빈 리스트인 경우
+            f({E{1}, E{2}}, {E{10}});                            //복사 대상의 m_head == m_tail인 경우
+            f({E{1}, E{2}}, {E{10}, E{20}});                     //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}, E{2}}, {E{10}, E{20}, E{30}});              //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head != m_tail이고 사이에 노드가 있는 리스트인 경우
+            f({E{1}, E{2}, E{3}}, {});                           //복사 대상이 빈 리스트인 경우
+            f({E{1}, E{2}, E{3}}, {E{10}});                      //복사 대상의 m_head == m_tail인 경우
+            f({E{1}, E{2}, E{3}}, {E{10}, E{20}});               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}, E{2}, E{3}}, {E{10}, E{20}, E{30}});        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            #undef f
+
+        }
+
+        //push_front(List rvalue)
+        {
+
+            L l{};                          //빈 컨테이너로 이동
+            L move{E{10}, E{20}, E{30}};
+            l.push_front(std::move(move));
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+            assert(move.get_size() == 0);
+            assert(move.get_head_node() == move.get_empty_node());
+            assert(move.get_tail_node() == move.get_empty_node());
+
+            L move2{E{40}};                 //비지 않은 컨테이너로 이동
+            l.push_front(std::move(move2));
+            assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30);
+            assert(move2.get_size() == 0);
+            assert(move2.get_head_node() == move2.get_empty_node());
+            assert(move2.get_tail_node() == move2.get_empty_node());
+            
+        }
+        
+        //push_front(Iterator)
+        {
+            
+            //빈 리스트인 경우
+            #define f mihylist_unittest_push_front_iterator_test
+            f({}, std::initializer_list<E>{});                                           //복사 대상이 빈 리스트인 경우
+            f({}, std::initializer_list<E>{E{10}});                                      //복사 대상의 m_head == m_tail인 경우
+            f({}, std::initializer_list<E>{E{10}, E{20}});                               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({}, std::initializer_list<E>{E{10}, E{20}, E{30}});                        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head == m_tail인 리스트인 경우
+            f({E{1}}, std::initializer_list<E>{});                                       //복사 대상이 빈 리스트인 경우
+            f({E{1}}, std::initializer_list<E>{E{10}});                                  //복사 대상의 m_head == m_tail인 경우
+            f({E{1}}, std::initializer_list<E>{E{10}, E{20}});                           //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}}, std::initializer_list<E>{E{10}, E{20}, E{30}});                    //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head != m_tail이고 사이에 노드가 없는 리스트인 경우
+            f({E{1}, E{2}}, std::initializer_list<E>{});                                 //복사 대상이 빈 리스트인 경우
+            f({E{1}, E{2}}, std::initializer_list<E>{E{10}});                            //복사 대상의 m_head == m_tail인 경우
+            f({E{1}, E{2}}, std::initializer_list<E>{E{10}, E{20}});                     //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}, E{2}}, std::initializer_list<E>{E{10}, E{20}, E{30}});              //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+
+            //m_head != m_tail이고 사이에 노드가 있는 리스트인 경우
+            f({E{1}, E{2}, E{3}}, std::initializer_list<E>{});                           //복사 대상이 빈 리스트인 경우
+            f({E{1}, E{2}, E{3}}, std::initializer_list<E>{E{10}});                      //복사 대상의 m_head == m_tail인 경우
+            f({E{1}, E{2}, E{3}}, std::initializer_list<E>{E{10}, E{20}});               //복사 대상의 m_head != m_tail이고 사이에 노드가 없는 경우
+            f({E{1}, E{2}, E{3}}, std::initializer_list<E>{E{10}, E{20}, E{30}});        //복사 대상의 m_head != m_tail이고 사이에 노드가 있는 경우
+            #undef f
+
+        }
+
+        //push_left(Index, lvalue)
+        //push_left(Index, rvalue)
+        //push_left(Index, 초기화 리스트)
+        //push_left(Index, List lvalue)
+        //push_left(Index, List rvalue)
+        //push_left(Index, Iterator)
+        //위 함수들은 내부에서 push_left(Node, ...)를 호출합니다. 따라서 push_left(Node, ...)의 테스트를 통해 검사합니다.
+
+        //push_left(Iterator, lvalue)
+        //push_left(Iterator, rvalue)
+        //push_left(Iterator, 초기화 리스트)
+        //push_left(Iterator, List lvalue)
+        //push_left(Iterator, List rvalue)
+        //push_left(Iterator, Iterator)
+        //위 함수들은 내부에서 push_left(Node, ...)를 호출합니다. 따라서 push_left(Node, ...)의 테스트를 통해 검사합니다.
+
+        //push_left(Node, lvalue)
+        {
+                
+            E e0{10};
+            E e1{20};
+            E e2{30};
+            E e3{40};
+            E e4{50};
+
+            L l{};
+            l.push_left(&l.m_empty_node,              e0);           //리스트가 비었을 경우              10
+            l.push_left(l.m_empty_node.next,          e1);           //head                           20 10
+            l.push_left(l.m_empty_node.prev,          e2);           //tail                          20 30 10
+            l.push_left(l.m_empty_node.next->next,    e3);           //중간 노드                    20 40 30 10
+            l.push_left(&l.m_empty_node,              e4);           //empty_node                 20 40 30 10 50
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 20 && l.get(1) == 40 && l.get(2) == 30 && l.get(3) == 10 && l.get(4) == 50);
+            
+        }
+
+        //push_left(Node, rvalue)
+        {
+
+            L l{};
+            l.push_left(&l.m_empty_node,           E{10});           //리스트가 비었을 경우              10
+            l.push_left(l.m_empty_node.next,       E{20});           //head                           20 10
+            l.push_left(l.m_empty_node.prev,       E{30});           //tail                          20 30 10
+            l.push_left(l.m_empty_node.next->next, E{40});           //중간 노드                    20 40 30 10
+            l.push_left(&l.m_empty_node,           E{50});           //empty_node                 20 40 30 10 50
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 20 && l.get(1) == 40 && l.get(2) == 30 && l.get(3) == 10 && l.get(4) == 50);
+
+        }
+
+        //push_left(Node, 초기화 리스트)        내부에서 push_left(Node, Iterator)를 호출합니다. 따라서 push_left(Node, Iterator)의 테스트를 통해 검사합니다.
+        //push_left(Node, List lvalue)         내부에서 push_left(Node, Iterator)를 호출합니다. 따라서 push_left(Node, Iterator)의 테스트를 통해 검사합니다.
+        
+        //push_left(Node, List rvalue)
+        {
+
+            L l{};
+            l.push_left(&l.m_empty_node, L{E{10}, E{20}, E{30}});                         //리스트가 비었을 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+            l = {E{40}};
+            l.push_left(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //원소가 하나일 경우(head == tail)
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_left(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //head
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50 && l.get(5) == 60);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_left(l.m_empty_node.prev, L{E{10}, E{20}, E{30}});                     //tail
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60);
+
+            l = {E{40}, E{50}, E{60}, E{70}};
+            l.push_left(l.m_empty_node.next->next->next, L{E{10}, E{20}, E{30}});         //중간 노드
+            assert(l.get_size() == 7);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60 && l.get(6) == 70);
+
+            l = {E{40}, E{50}};
+            l.push_left(&l.m_empty_node, L{E{10}, E{20}, E{30}});                        //empty_node
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30);
+            
+        }
+
+        //push_left(Node, Iterator)
+        {
+
+            L container{E{10}, E{20}, E{30}};
+
+            L l{};
+            l.push_left(&l.m_empty_node, container.begin(), container.end());                         //리스트가 비었을 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+            l = {E{40}};
+            l.push_left(l.m_empty_node.next, container.begin(), container.end());                     //원소가 하나일 경우(head == tail)
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_left(l.m_empty_node.next, container.begin(), container.end());                     //head
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50 && l.get(5) == 60);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_left(l.m_empty_node.prev, container.begin(), container.end());                     //tail
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60);
+
+            l = {E{40}, E{50}, E{60}, E{70}};
+            l.push_left(l.m_empty_node.next->next->next, container.begin(), container.end());         //중간 노드
+            assert(l.get_size() == 7);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60 && l.get(6) == 70);
+
+            l = {E{40}, E{50}};
+            l.push_left(&l.m_empty_node, container.begin(), container.end());                        //empty_node
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30);
+
+        }
+
+
+        //push_right(Index, lvalue)
+        //push_right(Index, rvalue)
+        //push_right(Index, 초기화 리스트)
+        //push_right(Index, List lvalue)
+        //push_right(Index, List rvalue)
+        //push_right(Index, Iterator)
+        //위 함수들은 내부에서 push_right(Node, ...)를 호출합니다. 따라서 push_right(Node, ...)의 테스트를 통해 검사합니다.
+
+        //push_right(Iterator, lvalue)
+        //push_right(Iterator, rvalue)
+        //push_right(Iterator, 초기화 리스트)
+        //push_right(Iterator, List lvalue)
+        //push_right(Iterator, List rvalue)
+        //push_right(Iterator, Iterator)
+        //위 함수들은 내부에서 push_right(Node, ...)를 호출합니다. 따라서 push_right(Node, ...)의 테스트를 통해 검사합니다.
+
+        //push_right(Node, lvalue)
+        {
+                
+            E e0{10};
+            E e1{20};
+            E e2{30};
+            E e3{40};
+            E e4{50};
+
+            L l{};
+            l.push_right(&l.m_empty_node,              e0);           //리스트가 비었을 경우              10
+            l.push_right(l.m_empty_node.next,          e1);           //head                           10 20
+            l.push_right(l.m_empty_node.prev,          e2);           //tail                          10 20 30
+            l.push_right(l.m_empty_node.next->next,    e3);           //중간 노드                    10 20 40 30
+            l.push_right(&l.m_empty_node,              e4);           //empty_node                 50 10 20 40 30
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 50 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 40 && l.get(4) == 30);
+            
+        }
+
+        //push_right(Node, rvalue)
+        {
+
+            L l{};
+            l.push_right(&l.m_empty_node,           E{10});           //리스트가 비었을 경우              10
+            l.push_right(l.m_empty_node.next,       E{20});           //head                           10 20
+            l.push_right(l.m_empty_node.prev,       E{30});           //tail                          10 20 30
+            l.push_right(l.m_empty_node.next->next, E{40});           //중간 노드                    10 20 40 30
+            l.push_right(&l.m_empty_node,           E{50});           //empty_node                 50 10 20 40 30
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 50 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 40 && l.get(4) == 30);
+
+        }
+
+        //push_right(Node, 초기화 리스트)        내부에서 push_right(Node, Iterator)를 호출합니다. 따라서 push_right(Node, Iterator)의 테스트를 통해 검사합니다.
+        //push_right(Node, List lvalue)         내부에서 push_right(Node, Iterator)를 호출합니다. 따라서 push_right(Node, Iterator)의 테스트를 통해 검사합니다.
+        
+        //push_right(Node, List rvalue)
+        {
+                
+            L l{};
+            l.push_right(&l.m_empty_node, L{E{10}, E{20}, E{30}});                         //리스트가 비었을 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+            l = {E{40}};
+            l.push_right(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //원소가 하나일 경우(head == tail)
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_right(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //head
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30 && l.get(4) == 50 && l.get(5) == 60);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_right(l.m_empty_node.prev, L{E{10}, E{20}, E{30}});                     //tail
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30);
+
+            l = {E{40}, E{50}, E{60}, E{70}};
+            l.push_right(l.m_empty_node.next->next->next, L{E{10}, E{20}, E{30}});         //중간 노드
+            assert(l.get_size() == 7);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30 && l.get(6) == 70);
+
+            l = {E{40}, E{50}};
+            l.push_right(&l.m_empty_node, L{E{10}, E{20}, E{30}});                        //empty_node
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50);
+
+        }
+
+        //push_right(Node, Iterator)
+        {
+
+            L container{E{10}, E{20}, E{30}};
+
+            L l{};
+            l.push_right(&l.m_empty_node, container.begin(), container.end());                         //리스트가 비었을 경우
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+            l = {E{40}};
+            l.push_right(l.m_empty_node.next, container.begin(), container.end());                     //원소가 하나일 경우(head == tail)
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_right(l.m_empty_node.next, container.begin(), container.end());                     //head
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30 && l.get(4) == 50 && l.get(5) == 60);
+
+            l = {E{40}, E{50}, E{60}};
+            l.push_right(l.m_empty_node.prev, container.begin(), container.end());                     //tail
+            assert(l.get_size() == 6);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30);
+
+            l = {E{40}, E{50}, E{60}, E{70}};
+            l.push_right(l.m_empty_node.next->next->next, container.begin(), container.end());         //중간 노드
+            assert(l.get_size() == 7);
+            assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30 && l.get(6) == 70);
+
+            l = {E{40}, E{50}};
+            l.push_right(&l.m_empty_node, container.begin(), container.end());                        //empty_node
+            assert(l.get_size() == 5);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50);
+
+        }
 
         //pop_back
 
@@ -1056,6 +1431,98 @@ namespace MIHYCore{
         }
 
         for(auto& e : container){
+            assert(l.get(index) == e);
+            ++index;
+        }
+
+        if(l.get_size() == 0){
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
+        }
+
+        if(l.get_size() == 1){
+            assert(l.get_head_node() == l.get_tail_node());
+        }
+        
+    }
+
+    void mihylist_unittest_push_front_initializer_list_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list){
+
+        MIHYList<List_Element> l{list};
+
+        l.push_front(push_back_list);
+
+        assert(l.get_size() == list.size() + push_back_list.size());
+
+        UInt64 index{0};
+        for(auto& e : push_back_list){
+            assert(l.get(index) == e);
+            ++index;
+        }
+
+        for(auto& e : list){
+            assert(l.get(index) == e);
+            ++index;
+        }
+
+        if(l.get_size() == 0){
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
+        }
+
+        if(l.get_size() == 1){
+            assert(l.get_head_node() == l.get_tail_node());
+        }
+
+    }
+
+    void mihylist_unittest_push_front_list_lvalue_test(std::initializer_list<List_Element> list, std::initializer_list<List_Element> push_back_list){
+
+        MIHYList<List_Element> l{list};
+        MIHYList<List_Element> push_back{push_back_list};
+
+        l.push_front(push_back);
+
+        assert(l.get_size() == list.size() + push_back_list.size());
+
+        UInt64 index{0};
+        for(auto& e : push_back_list){
+            assert(l.get(index) == e);
+            ++index;
+        }
+
+        for(auto& e : list){
+            assert(l.get(index) == e);
+            ++index;
+        }
+
+        if(l.get_size() == 0){
+            assert(l.get_head_node() == l.get_empty_node());
+            assert(l.get_tail_node() == l.get_empty_node());
+        }
+
+        if(l.get_size() == 1){
+            assert(l.get_head_node() == l.get_tail_node());
+        }
+
+    }
+
+    template<typename Container>
+    void mihylist_unittest_push_front_iterator_test(std::initializer_list<List_Element> list, Container container){
+
+        MIHYList<List_Element> l{list};
+
+        l.push_front(container.begin(), container.end());
+
+        assert(l.get_size() == list.size() + mihyiterator_distance(container.begin(), container.end()));
+
+        UInt64 index{0};
+        for(auto& e : container){
+            assert(l.get(index) == e);
+            ++index;
+        }
+
+        for(auto& e : list){
             assert(l.get(index) == e);
             ++index;
         }

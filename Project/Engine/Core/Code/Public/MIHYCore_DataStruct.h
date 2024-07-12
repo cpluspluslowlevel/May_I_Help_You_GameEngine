@@ -103,7 +103,7 @@ namespace MIHYCore{
             /// @return         스스로의 참조
             MIHYVector& operator=(const MIHYVector& lvalue){
 
-                if (this != &lvalue) {
+                if(this != &lvalue){
                     
                     delete[] m_memory;
                     
@@ -125,7 +125,7 @@ namespace MIHYCore{
             /// @return         스스로의 참조
             MIHYVector& operator=(MIHYVector&& rvalue) noexcept{
 
-                if (this != &rvalue) {
+                if(this != &rvalue){
 
                     delete[] m_memory;
 
@@ -924,6 +924,7 @@ namespace MIHYCore{
             NODE   m_empty_node;        //next를 head로 prev를 tail로 사용합니다. 자체로 하나의 노드입니다. value는 사용하지 않습니다.
                                         //첫 번째 노드의 이전 노드이자 마지막 노드의 다음 노드입니다.
                                         //반복자에서 첫 노드 이전이나 마지막 노드 이후 노드를 가리킬 때가 있는데 그 때 이 노드를 가리키면서 nullptr를 가리키지 않게 합니다.
+
             UInt64  m_size;
 
         public:
@@ -1040,7 +1041,8 @@ namespace MIHYCore{
                     for(UInt64 i = 0; i < remove_count; ++i){
 
                         auto temp{m_empty_node.prev};
-                        m_empty_node.prev = m_empty_node.prev->prev;
+                        m_empty_node.prev           = m_empty_node.prev->prev;
+                        m_empty_node.prev->next    = &m_empty_node;
                         delete temp;
 
                     }
@@ -1097,7 +1099,8 @@ namespace MIHYCore{
                     for(UInt64 i = 0; i < remove_count; ++i){
 
                         auto temp{m_empty_node.prev};
-                        m_empty_node.prev = m_empty_node.prev->prev;
+                        m_empty_node.prev           = m_empty_node.prev->prev;
+                        m_empty_node.prev->next     = &m_empty_node;
                         delete temp;
 
                     }
@@ -1159,16 +1162,13 @@ namespace MIHYCore{
             void push_back(std::initializer_list<Type> list){
 
                 auto iter{list.begin()};
-                while(iter != list.end()){
+                auto iter_end{list.end()};
+                while(iter != iter_end){
 
-                    m_empty_node.prev = new NODE{std::move(iter->value), m_empty_node.prev, &m_empty_node};
-                    m_empty_node.prev->prev->next = m_empty_node.prev;
-
+                    push_back(*iter);
                     ++iter;
 
                 }
-
-                m_size += list.size();
 
             }
 
@@ -1230,6 +1230,121 @@ namespace MIHYCore{
 
                 }
 
+            }
+
+            /// @brief          원소를 앞에 추가합니다.
+            /// @param lvalue   추가할 원소
+            void push_front(const Type& lvalue){
+
+                m_empty_node.next               = new NODE{lvalue, &m_empty_node, m_empty_node.next};
+                m_empty_node.next->next->prev   = m_empty_node.next;
+
+                ++m_size;
+
+            }
+
+            /// @brief          원소를 앞에 추가합니다.
+            /// @param rvalue   추가할 원소
+            void push_front(Type&& rvalue){
+
+                m_empty_node.next               = new NODE{std::move(rvalue), &m_empty_node, m_empty_node.next};
+                m_empty_node.next->next->prev   = m_empty_node.next;
+
+                ++m_size;
+
+            }
+
+            /// @brief          초기화 리스트의 원소들을 앞에 추가합니다.
+            /// @param list     추가할 원소들의 초기화 리스트
+            void push_front(std::initializer_list<Type> list){
+
+                auto insert_prev{&m_empty_node};
+                auto iter{list.begin()};
+                auto end{list.end()};
+                while(iter != end){
+
+                    insert_prev->next = new NODE{*iter, insert_prev, insert_prev->next};
+                    insert_prev->next->next->prev = insert_prev->next;
+                    insert_prev = insert_prev->next;
+
+                    ++iter;
+                    ++m_size;
+
+                }
+
+            }
+
+            /// @brief          다른 리스트의 원소들을 앞에 추가합니다.
+            /// @param lvalue   추가할 리스트
+            void push_front(const MIHYList& lvalue){
+
+                auto insert_prev{&m_empty_node};
+                auto iter{lvalue.cbegin()};
+                auto end{lvalue.cend()};
+                while(iter != end){
+
+                    insert_prev->next = new NODE{*iter, insert_prev, insert_prev->next};
+                    insert_prev->next->next->prev = insert_prev->next;
+                    insert_prev = insert_prev->next;
+
+                    ++iter;
+                    ++m_size;
+
+                }
+
+            }
+
+            /// @brief          다른 리스트의 원소들을 앞에 추가합니다.
+            /// @param rvalue   추가할 리스트
+            void push_front(MIHYList&& rvalue){
+
+                if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
+                    return;
+                }
+
+                //위에서 rvalue가 비어있을 때에 대한 예외를 처리했으므로 여기선 rvalue가 반드시 하나 이상의 원소를 가지고 있습니다.
+
+                m_empty_node.next->prev        = rvalue.m_empty_node.prev;        //head와 이동 대상의 tail를 서로 연결합니다.
+                rvalue.m_empty_node.prev->next = m_empty_node.next;
+                
+                m_empty_node.next = rvalue.m_empty_node.next;                     //rvalue의 노드들이 앞에 붙었으니 head를 rvalue의 head로 갱신합니다.
+
+                m_size += rvalue.m_size;
+
+                rvalue.m_empty_node.prev = rvalue.m_empty_node.next = &rvalue.m_empty_node;
+                rvalue.m_size = 0;
+
+            }
+
+            /// @brief              반복자를 통해 원소들을 앞에 추가합니다.
+            /// @tparam Iterator    반복자의 타입
+            /// @param begin        시작 반복자
+            /// @param end          끝 반복자
+            template<typename Iterator>
+            void push_front(Iterator begin, Iterator end){
+
+                auto insert_prev{&m_empty_node};
+                while(begin != end){
+
+                    insert_prev->next = new NODE{*begin, insert_prev, insert_prev->next};
+                    insert_prev->next->next->prev = insert_prev->next;
+                    insert_prev = insert_prev->next;
+
+                    ++begin;
+                    ++m_size;
+
+                }
+
+            }
+
+            void push_left(UInt64 index, const Type& lvalue){
+                assert(index <= m_size);
+                push_left(get_node(index), lvalue);
+            }
+
+            void push_left(UInt64 index, Type&& rvalue){
+                assert(index <= m_size);
+                push_left(get_node(index), std::move(rvalue));
             }
 
             /// @brief 모든 원소를 삭제합니다.
@@ -1363,6 +1478,143 @@ namespace MIHYCore{
             }
 
         private:
+
+            /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param lvalue   삽입할 원소
+            void push_left(NODE* node, const Type& lvalue){
+
+                node->prev              = new NODE{lvalue, node->prev, node};
+                node->prev->prev->next  = node->prev;
+
+                ++m_size;
+
+            }
+
+            /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param rvalue   삽입할 원소
+            void push_left(NODE* node, Type&& rvalue){
+
+                node->prev              = new NODE{std::move(rvalue), node->prev, node};
+                node->prev->prev->next  = node->prev;
+
+                ++m_size;
+
+            }
+
+            /// @brief          노드를 왼쪽에 삽입합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param list     삽입할 원소들의 초기화 리스트
+            void push_left(NODE* node, std::initializer_list<Type> list){
+                push_left(node, list.begin(), list.end());
+            }
+
+            /// @brief          노드를 왼쪽에 삽입합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param lvalue   삽입할 리스트
+            void push_left(NODE* node, const MIHYList& lvalue){
+                push_left(node, lvalue.cbegin(), lvalue.cend());
+            }
+
+            /// @brief          노드를 왼쪽에 삽입합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param rvalue   삽입할 리스트
+            void push_left(NODE* node, MIHYList&& rvalue){
+
+                if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
+                    return;
+                }
+
+                //위에서 rvalue가 비어있을 때에 대한 예외를 처리했으므로 여기선 rvalue가 반드시 하나 이상의 원소를 가지고 있습니다.
+                auto prev{node->prev};
+                auto current{node};
+
+                prev->next                      = rvalue.m_empty_node.next;     //이전 노드의 next와 이동 대상의 head를 서로 연결합니다.
+                rvalue.m_empty_node.next->prev  = prev;
+
+                current->prev                   = rvalue.m_empty_node.prev;     //현재 노드의 prev와 이동 대상의 tail을 서로 연결합니다.
+                rvalue.m_empty_node.prev->next  = current;
+
+                m_size += rvalue.m_size;
+
+                rvalue.m_empty_node.prev = rvalue.m_empty_node.next = &rvalue.m_empty_node;
+                rvalue.m_size = 0;
+
+            }
+
+            /// @brief              노드를 왼쪽에 삽입합니다.
+            /// @tparam Iterator    반복자의 타입
+            /// @param node         삽입할 위치의 노드
+            /// @param begin        시작 반복자
+            /// @param end          끝 반복자
+            template<typename Iterator>
+            void push_left(NODE* node, Iterator begin, Iterator end){
+                while(begin != end){
+                    push_left(node, *begin);
+                    ++begin;
+                }
+            }
+
+            /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param lvalue   삽입할 원소
+            void push_right(NODE* node, const Type& lvalue){
+
+                node->next              = new NODE{lvalue, node, node->next};
+                node->next->next->prev  = node->next;
+
+                ++m_size;
+
+            }
+
+            /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param rvalue   삽입할 원소
+            void push_right(NODE* node, Type&& rvalue){
+
+                node->next              = new NODE{std::move(rvalue), node, node->next};
+                node->next->next->prev  = node->next;
+
+                ++m_size;
+
+            }
+
+            void push_right(NODE* node, std::initializer_list<Type> list){
+                push_right(node, list.begin(), list.end());
+            }
+
+            void push_right(NODE* node, const MIHYList& lvalue){
+                push_right(node, lvalue.cbegin(), lvalue.cend());
+            }
+
+            void push_right(NODE* node, MIHYList&& rvalue){
+
+                if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
+                    return;
+                }
+
+                //위에서 rvalue가 비어있을 때에 대한 예외를 처리했으므로 여기선 rvalue가 반드시 하나 이상의 원소를 가지고 있습니다.
+                auto next{node->next};
+                auto current{node};
+
+                next->prev                      = rvalue.m_empty_node.prev;     //다음 노드의 prev와 이동 대상의 tail을 서로 연결합니다.
+                rvalue.m_empty_node.prev->next  = next;
+
+                current->next                   = rvalue.m_empty_node.next;     //현재 노드의 next와 이동 대상의 head을 서로 연결합니다.
+                rvalue.m_empty_node.next->prev  = current;
+
+                m_size += rvalue.m_size;
+
+                rvalue.m_empty_node.prev = rvalue.m_empty_node.next = &rvalue.m_empty_node;
+                rvalue.m_size = 0;
+
+            }
+
+            template<typename Iterator>
+            void push_right(NODE* node, Iterator begin, Iterator end){
+                push_left(node->next, begin, end);
+            }
 
             friend void mihylist_unittest();
 
