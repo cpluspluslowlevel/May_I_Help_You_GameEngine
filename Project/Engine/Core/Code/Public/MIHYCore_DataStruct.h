@@ -1337,14 +1337,210 @@ namespace MIHYCore{
 
             }
 
+            /// @brief          왼쪽에 원소를 추가합니다.
+            /// @param index    추가할 위치
+            /// @param lvalue   추가할 원소
             void push_left(UInt64 index, const Type& lvalue){
-                assert(index <= m_size);
-                push_left(get_node(index), lvalue);
+                push_node_left(get_private_node(index), lvalue);
             }
 
+            /// @brief          왼쪽에 원소를 추가합니다.
+            /// @param index    추가할 위치
+            /// @param rvalue   추가할 원소
             void push_left(UInt64 index, Type&& rvalue){
-                assert(index <= m_size);
-                push_left(get_node(index), std::move(rvalue));
+                push_node_left(get_private_node(index), std::move(rvalue));
+            }
+
+            /// @brief          왼쪽에 초기화 리스트의 원소들을 추가합니다.
+            /// @param index    추가할 위치
+            /// @param list     추가할 초기화 리스트
+            void push_left(UInt64 index, std::initializer_list<Type> list){
+                push_node_left(get_private_node(index), list);
+            }
+
+            /// @brief          왼쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param index    추가할 위치
+            /// @param lvalue   추가할 리스트
+            void push_left(UInt64 index, const MIHYList& lvalue){
+                push_node_left(get_private_node(index), lvalue);
+            }
+
+            /// @brief          왼쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param index    추가할 위치
+            /// @param rvalue   추가할 리스트
+            void push_left(UInt64 index, MIHYList&& rvalue){
+                push_node_left(get_private_node(index), std::move(rvalue));
+            }
+
+            /// @brief                              왼쪽에 반복자를 통해 원소들을 추가합니다.
+            /// @tparam Copy_Iterator               복사 반복자의 타입
+            /// @param  index                       추가할 위치
+            /// @param  begin                       시작 반복자
+            /// @param  end                         끝 반복자
+            template<typename Copy_Iterator>
+            void push_left(UInt64 index, Copy_Iterator begin, Copy_Iterator end){
+                push_node_left(get_private_node(index), begin, end);
+            }
+
+            /// @brief                              왼쪽에 원소를 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  lvalue                      추가할 원소
+            void push_left(Iterator iter, const Type& lvalue){
+                push_node_left(iter.m_node, lvalue);
+            }
+
+            /// @brief                              왼쪽에 원소를 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  rvalue                      추가할 원소
+            void push_left(Iterator iter, Type&& rvalue){
+                push_node_left(iter.m_node, std::move(rvalue));
+            }
+
+            /// @brief                              왼쪽에 초기화 리스트의 원소들을 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  list                        추가할 초기화 리스트
+            void push_left(Iterator iter, std::initializer_list<Type> list){
+                push_node_left(iter.m_node, list);
+            }
+
+            /// @brief                              왼쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  lvalue                      추가할 리스트
+            void push_left(Iterator iter, const MIHYList& lvalue){
+                push_node_left(iter.m_node, lvalue);
+            }
+
+            /// @brief                              왼쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  rvalue                      추가할 리스트
+            void push_left(Iterator iter, MIHYList&& rvalue){
+                push_node_left(iter.m_node, std::move(rvalue));
+            }
+
+            /// @brief                      왼쪽에 반복자를 통해 원소들을 추가합니다.
+            /// @tparam Copy_Iterator       복사 반복자의 타입
+            /// @param  iter                추가할 위치를 가리키는 반복자
+            /// @param  begin               복사할 컨테이너의 시작 반복자
+            /// @param  end                 복사할 컨테이너의 끝 반복자
+            template<typename Copy_Iterator>
+            void push_left(Iterator iter, Copy_Iterator begin, Copy_Iterator end){
+                push_node_left(iter.m_node, begin, end);
+            }
+
+            /// @brief          오른쪽에 원소를 추가합니다.
+            /// @param index    추가할 위치
+            /// @param lvalue   추가할 원소
+            void push_right(UInt64 index, const Type& lvalue){
+                push_node_right(get_private_node(index), lvalue);
+            }
+
+            /// @brief          오른쪽에 원소를 추가합니다.
+            /// @param index    추가할 위치
+            /// @param rvalue   추가할 원소
+            void push_right(UInt64 index, Type&& rvalue){
+                push_node_right(get_private_node(index), std::move(rvalue));
+            }
+
+            /// @brief          오른쪽에 초기화 리스트의 원소들을 추가합니다.
+            /// @param index    추가할 위치
+            /// @param list     추가할 초기화 리스트
+            void push_right(UInt64 index, std::initializer_list<Type> list){
+                push_node_right(get_private_node(index), list);
+            }
+
+            /// @brief          오른쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param index    추가할 위치
+            /// @param lvalue   추가할 리스트
+            void push_right(UInt64 index, const MIHYList& lvalue){
+                push_node_right(get_private_node(index), lvalue);
+            }
+
+            /// @brief          오른쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param index    추가할 위치
+            /// @param rvalue   추가할 리스트
+            void push_right(UInt64 index, MIHYList&& rvalue){
+                push_node_right(get_private_node(index), std::move(rvalue));
+            }
+
+            /// @brief                  오른쪽에 반복자를 통해 원소들을 추가합니다.
+            /// @tparam Copy_Iterator   복사 반복자의 타입
+            /// @param index            추가할 위치
+            /// @param begin            시작 반복자
+            /// @param end              끝 반복자
+            template<typename Copy_Iterator>
+            void push_right(UInt64 index, Copy_Iterator begin, Copy_Iterator end){
+                push_node_right(get_private_node(index), begin, end);
+            }
+
+            /// @brief                              오른쪽에 원소를 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  lvalue                      추가할 원소
+            void push_right(Iterator iter, const Type& lvalue){
+                push_node_right(iter.m_node, lvalue);
+            }
+
+            /// @brief                              오른쪽에 원소를 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  rvalue                      추가할 원소
+            void push_right(Iterator iter, Type&& rvalue){
+                push_node_right(iter.m_node, std::move(rvalue));
+            }
+
+            /// @brief                              오른쪽에 초기화 리스트의 원소들을 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  list                        추가할 초기화 리스트
+            void push_right(Iterator iter, std::initializer_list<Type> list){
+                push_node_right(iter.m_node, list);
+            }
+
+            /// @brief                              오른쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param  lvalue                      추가할 리스트
+            void push_right(Iterator iter, const MIHYList& lvalue){
+                push_node_right(iter.m_node, lvalue);
+            }
+
+            /// @brief                              오른쪽에 다른 리스트의 원소들을 추가합니다.
+            /// @param  iter                        추가할 위치를 가리키는 반복자
+            /// @param rvalue                       추가할 리스트
+            void push_right(Iterator iter, MIHYList&& rvalue){
+                push_node_right(iter.m_node, std::move(rvalue));
+            }
+
+            /// @brief                      오른쪽에 반복자를 통해 원소들을 추가합니다.
+            /// @tparam Copy_Iterator       복사 반복자의 타입
+            /// @param  iter                추가할 위치를 가리키는 반복자
+            /// @param  begin               복사할 컨테이너의 시작 반복자
+            /// @param  end                 복사할 컨테이너의 끝 반복자
+            template<typename Copy_Iterator>
+            void push_right(Iterator iter, Copy_Iterator begin, Copy_Iterator end){
+                push_node_right(iter.m_node, begin, end);
+            }
+
+            /// @brief 첫 원소를 삭제합니다. 비어있을 경우 아무런 일도 하지 않습니다.
+            void pop_back(){
+                if(m_size != 0){    //비어있는 리스트에서 pop_front를 호출한 경우 예외처리
+                    pop_node(m_empty_node.prev);
+                }
+            }
+
+            /// @brief 마지막 원소를 삭제합니다. 비어있을 경우 아무런 일도 하지 않습니다.
+            void pop_front(){
+                if(m_size != 0){    //비어있는 리스트에서 pop_front를 호출한 경우 예외처리
+                    pop_node(m_empty_node.next);
+                }
+            }
+
+            /// @brief        원소를 삭제합니다.
+            /// @param index  원소의 위치. 올바른 범위에 있다고 가정합니다. 범위 밖에 대해 검사하지 않습니다.
+            void pop(UInt64 index){
+                pop_node(get_private_node(index));
+            }
+
+            /// @brief          원소를 삭제합니다.
+            /// @param iter     원소의 위치. 올바른 범위에 있다고 가정합니다. 범위 밖에 대해 검사하지 않습니다.
+            void pop(Iterator iter){
+                pop_node(iter.m_node);
             }
 
             /// @brief 모든 원소를 삭제합니다.
@@ -1441,8 +1637,6 @@ namespace MIHYCore{
             /// @return         노드의 포인터
             const NODE* get_node(UInt64 index) const{
 
-                assert(index < m_size);
-
                 auto result{m_empty_node.next};
 
                 for(UInt64 i = 0; i < index; ++i){
@@ -1479,10 +1673,24 @@ namespace MIHYCore{
 
         private:
 
+            /// @brief          노드를 찾습니다. get_node()와는 달리 상수가 아닙니다. 내부에서만 사용합니다.
+            /// @param index    노드의 위치
+            NODE* get_private_node(UInt64 index){
+
+                auto result{m_empty_node.next};
+
+                for(UInt64 i = 0; i < index; ++i){
+                    result = result->next;
+                }
+
+                return result;
+
+            }
+
             /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 원소
-            void push_left(NODE* node, const Type& lvalue){
+            void push_node_left(NODE* node, const Type& lvalue){
 
                 node->prev              = new NODE{lvalue, node->prev, node};
                 node->prev->prev->next  = node->prev;
@@ -1494,7 +1702,7 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 원소
-            void push_left(NODE* node, Type&& rvalue){
+            void push_node_left(NODE* node, Type&& rvalue){
 
                 node->prev              = new NODE{std::move(rvalue), node->prev, node};
                 node->prev->prev->next  = node->prev;
@@ -1506,21 +1714,21 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param list     삽입할 원소들의 초기화 리스트
-            void push_left(NODE* node, std::initializer_list<Type> list){
-                push_left(node, list.begin(), list.end());
+            void push_node_left(NODE* node, std::initializer_list<Type> list){
+                push_node_left(node, list.begin(), list.end());
             }
 
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 리스트
-            void push_left(NODE* node, const MIHYList& lvalue){
-                push_left(node, lvalue.cbegin(), lvalue.cend());
+            void push_node_left(NODE* node, const MIHYList& lvalue){
+                push_node_left(node, lvalue.cbegin(), lvalue.cend());
             }
 
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 리스트
-            void push_left(NODE* node, MIHYList&& rvalue){
+            void push_node_left(NODE* node, MIHYList&& rvalue){
 
                 if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
@@ -1543,15 +1751,15 @@ namespace MIHYCore{
 
             }
 
-            /// @brief              노드를 왼쪽에 삽입합니다.
-            /// @tparam Iterator    반복자의 타입
-            /// @param node         삽입할 위치의 노드
-            /// @param begin        시작 반복자
-            /// @param end          끝 반복자
-            template<typename Iterator>
-            void push_left(NODE* node, Iterator begin, Iterator end){
+            /// @brief                          노드를 왼쪽에 삽입합니다.
+            /// @tparam Copy_Iterator           복사할 컨테이너의 반복자 타입
+            /// @param  node                    삽입할 위치의 노드
+            /// @param  begin                   시작 반복자
+            /// @param  end                     끝 반복자
+            template<typename Copy_Iterator>
+            void push_node_left(NODE* node, Copy_Iterator begin, Copy_Iterator end){
                 while(begin != end){
-                    push_left(node, *begin);
+                    push_node_left(node, *begin);
                     ++begin;
                 }
             }
@@ -1559,7 +1767,7 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 원소
-            void push_right(NODE* node, const Type& lvalue){
+            void push_node_right(NODE* node, const Type& lvalue){
 
                 node->next              = new NODE{lvalue, node, node->next};
                 node->next->next->prev  = node->next;
@@ -1571,7 +1779,7 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 원소
-            void push_right(NODE* node, Type&& rvalue){
+            void push_node_right(NODE* node, Type&& rvalue){
 
                 node->next              = new NODE{std::move(rvalue), node, node->next};
                 node->next->next->prev  = node->next;
@@ -1580,15 +1788,24 @@ namespace MIHYCore{
 
             }
 
-            void push_right(NODE* node, std::initializer_list<Type> list){
-                push_right(node, list.begin(), list.end());
+            /// @brief          노드를 오른쪽에 삽입합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param list     삽입할 원소들의 초기화 리스트
+            void push_node_right(NODE* node, std::initializer_list<Type> list){
+                push_node_right(node, list.begin(), list.end());
             }
 
-            void push_right(NODE* node, const MIHYList& lvalue){
-                push_right(node, lvalue.cbegin(), lvalue.cend());
+            /// @brief          노드를 오른쪽에 삽입합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param lvalue   삽입할 리스트
+            void push_node_right(NODE* node, const MIHYList& lvalue){
+                push_node_right(node, lvalue.cbegin(), lvalue.cend());
             }
 
-            void push_right(NODE* node, MIHYList&& rvalue){
+            /// @brief          노드를 오른쪽에 삽입합니다.
+            /// @param node     삽입할 위치의 노드
+            /// @param rvalue   삽입할 리스트
+            void push_node_right(NODE* node, MIHYList&& rvalue){
 
                 if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
@@ -1611,9 +1828,29 @@ namespace MIHYCore{
 
             }
 
-            template<typename Iterator>
-            void push_right(NODE* node, Iterator begin, Iterator end){
-                push_left(node->next, begin, end);
+            /// @brief                      반복자를 통하여 노드를 오른쪽에 삽입합니다.
+            /// @tparam Copy_Iterator       복사할 컨테이너의 반복자 타입
+            /// @param  node                삽입할 위치의 노드
+            /// @param  begin               시작 반복자
+            /// @param  end                 끝 반복자
+            template<typename Copy_Iterator>
+            void push_node_right(NODE* node, Copy_Iterator begin, Copy_Iterator end){
+                push_node_left(node->next, begin, end);
+            }
+
+            /// @brief      원소를 제거합니다.
+            /// @param node 제거할 원소의 위치
+            void pop_node(NODE* node){
+
+                assert(node != &m_empty_node);  //빈 노드는 제거할 수 없습니다.
+
+                node->prev->next = node->next;
+                node->next->prev = node->prev;
+
+                delete node;
+
+                --m_size;
+
             }
 
             friend void mihylist_unittest();

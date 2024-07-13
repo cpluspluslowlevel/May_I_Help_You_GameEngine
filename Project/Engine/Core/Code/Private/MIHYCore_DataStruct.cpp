@@ -1055,17 +1055,37 @@ namespace MIHYCore{
         //push_left(Index, List lvalue)
         //push_left(Index, List rvalue)
         //push_left(Index, Iterator)
-        //위 함수들은 내부에서 push_left(Node, ...)를 호출합니다. 따라서 push_left(Node, ...)의 테스트를 통해 검사합니다.
-
         //push_left(Iterator, lvalue)
         //push_left(Iterator, rvalue)
         //push_left(Iterator, 초기화 리스트)
         //push_left(Iterator, List lvalue)
         //push_left(Iterator, List rvalue)
         //push_left(Iterator, Iterator)
-        //위 함수들은 내부에서 push_left(Node, ...)를 호출합니다. 따라서 push_left(Node, ...)의 테스트를 통해 검사합니다.
+        //위 함수들은 내부에서 push_node_left(Node, ...)를 호출합니다. 따라서 push_node_left(Node, ...)의 테스트를 통해 검사합니다.
+        {
 
-        //push_left(Node, lvalue)
+            //함수 시그니처 검사
+            L l{};
+            E e{};
+            L l2{E{}, E{}, E{}};
+            l.push_left(0, e);
+            l.push_left(0, E{});
+            l.push_left(0, {e, e, e});
+            l.push_left(0, l2);
+            l.push_left(0, L{e, e, e});
+            l.push_left(0, l2.begin(), l2.end());
+
+            l.clear();
+            l.push_left(l.begin(), e);
+            l.push_left(l.begin(), E{});
+            l.push_left(l.begin(), {e, e, e});
+            l.push_left(l.begin(), l2);
+            l.push_left(l.begin(), L{e, e, e});
+            l.push_left(l.begin(), l2.begin(), l2.end());
+
+        }
+
+        //push_node_left(Node, lvalue)
         {
                 
             E e0{10};
@@ -1075,100 +1095,109 @@ namespace MIHYCore{
             E e4{50};
 
             L l{};
-            l.push_left(&l.m_empty_node,              e0);           //리스트가 비었을 경우              10
-            l.push_left(l.m_empty_node.next,          e1);           //head                           20 10
-            l.push_left(l.m_empty_node.prev,          e2);           //tail                          20 30 10
-            l.push_left(l.m_empty_node.next->next,    e3);           //중간 노드                    20 40 30 10
-            l.push_left(&l.m_empty_node,              e4);           //empty_node                 20 40 30 10 50
+            l.push_node_left(&l.m_empty_node,              e0);           //리스트가 비었을 경우              10
+            l.push_node_left(l.m_empty_node.next,          e1);           //head                           20 10
+            l.push_node_left(l.m_empty_node.prev,          e2);           //tail                          20 30 10
+            l.push_node_left(l.m_empty_node.next->next,    e3);           //중간 노드                    20 40 30 10
+            l.push_node_left(&l.m_empty_node,              e4);           //empty_node                 20 40 30 10 50
             assert(l.get_size() == 5);
             assert(l.get(0) == 20 && l.get(1) == 40 && l.get(2) == 30 && l.get(3) == 10 && l.get(4) == 50);
             
         }
 
-        //push_left(Node, rvalue)
+        //push_node_left(Node, rvalue)
         {
 
             L l{};
-            l.push_left(&l.m_empty_node,           E{10});           //리스트가 비었을 경우              10
-            l.push_left(l.m_empty_node.next,       E{20});           //head                           20 10
-            l.push_left(l.m_empty_node.prev,       E{30});           //tail                          20 30 10
-            l.push_left(l.m_empty_node.next->next, E{40});           //중간 노드                    20 40 30 10
-            l.push_left(&l.m_empty_node,           E{50});           //empty_node                 20 40 30 10 50
+            l.push_node_left(&l.m_empty_node,           E{10});           //리스트가 비었을 경우              10
+            l.push_node_left(l.m_empty_node.next,       E{20});           //head                           20 10
+            l.push_node_left(l.m_empty_node.prev,       E{30});           //tail                          20 30 10
+            l.push_node_left(l.m_empty_node.next->next, E{40});           //중간 노드                    20 40 30 10
+            l.push_node_left(&l.m_empty_node,           E{50});           //empty_node                 20 40 30 10 50
             assert(l.get_size() == 5);
             assert(l.get(0) == 20 && l.get(1) == 40 && l.get(2) == 30 && l.get(3) == 10 && l.get(4) == 50);
 
         }
 
-        //push_left(Node, 초기화 리스트)        내부에서 push_left(Node, Iterator)를 호출합니다. 따라서 push_left(Node, Iterator)의 테스트를 통해 검사합니다.
-        //push_left(Node, List lvalue)         내부에서 push_left(Node, Iterator)를 호출합니다. 따라서 push_left(Node, Iterator)의 테스트를 통해 검사합니다.
+        //push_node_left(Node, 초기화 리스트)        내부에서 push_node_left(Node, Iterator)를 호출합니다. 따라서 push_node_left(Node, Iterator)의 테스트를 통해 검사합니다.
+        //push_node_left(Node, List lvalue)         내부에서 push_node_left(Node, Iterator)를 호출합니다. 따라서 push_node_left(Node, Iterator)의 테스트를 통해 검사합니다.
+        {
+
+            //함수 시그니처 검사
+            L l;
+            L l2;
+            l.push_node_left(&l.m_empty_node, {E{}, E{}, E{}});
+            l.push_node_left(&l.m_empty_node, l2);
+
+        }
         
-        //push_left(Node, List rvalue)
+        //push_node_left(Node, List rvalue)
         {
 
             L l{};
-            l.push_left(&l.m_empty_node, L{E{10}, E{20}, E{30}});                         //리스트가 비었을 경우
+            l.push_node_left(&l.m_empty_node, L{E{10}, E{20}, E{30}});                         //리스트가 비었을 경우
             assert(l.get_size() == 3);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
 
             l = {E{40}};
-            l.push_left(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //원소가 하나일 경우(head == tail)
+            l.push_node_left(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //원소가 하나일 경우(head == tail)
             assert(l.get_size() == 4);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_left(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //head
+            l.push_node_left(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //head
             assert(l.get_size() == 6);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50 && l.get(5) == 60);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_left(l.m_empty_node.prev, L{E{10}, E{20}, E{30}});                     //tail
+            l.push_node_left(l.m_empty_node.prev, L{E{10}, E{20}, E{30}});                     //tail
             assert(l.get_size() == 6);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60);
 
             l = {E{40}, E{50}, E{60}, E{70}};
-            l.push_left(l.m_empty_node.next->next->next, L{E{10}, E{20}, E{30}});         //중간 노드
+            l.push_node_left(l.m_empty_node.next->next->next, L{E{10}, E{20}, E{30}});         //중간 노드
             assert(l.get_size() == 7);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60 && l.get(6) == 70);
 
             l = {E{40}, E{50}};
-            l.push_left(&l.m_empty_node, L{E{10}, E{20}, E{30}});                        //empty_node
+            l.push_node_left(&l.m_empty_node, L{E{10}, E{20}, E{30}});                        //empty_node
             assert(l.get_size() == 5);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30);
             
         }
 
-        //push_left(Node, Iterator)
+        //push_node_left(Node, Iterator)
         {
 
             L container{E{10}, E{20}, E{30}};
 
             L l{};
-            l.push_left(&l.m_empty_node, container.begin(), container.end());                         //리스트가 비었을 경우
+            l.push_node_left(&l.m_empty_node, container.begin(), container.end());                         //리스트가 비었을 경우
             assert(l.get_size() == 3);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
 
             l = {E{40}};
-            l.push_left(l.m_empty_node.next, container.begin(), container.end());                     //원소가 하나일 경우(head == tail)
+            l.push_node_left(l.m_empty_node.next, container.begin(), container.end());                     //원소가 하나일 경우(head == tail)
             assert(l.get_size() == 4);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_left(l.m_empty_node.next, container.begin(), container.end());                     //head
+            l.push_node_left(l.m_empty_node.next, container.begin(), container.end());                     //head
             assert(l.get_size() == 6);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50 && l.get(5) == 60);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_left(l.m_empty_node.prev, container.begin(), container.end());                     //tail
+            l.push_node_left(l.m_empty_node.prev, container.begin(), container.end());                     //tail
             assert(l.get_size() == 6);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60);
 
             l = {E{40}, E{50}, E{60}, E{70}};
-            l.push_left(l.m_empty_node.next->next->next, container.begin(), container.end());         //중간 노드
+            l.push_node_left(l.m_empty_node.next->next->next, container.begin(), container.end());         //중간 노드
             assert(l.get_size() == 7);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30 && l.get(5) == 60 && l.get(6) == 70);
 
             l = {E{40}, E{50}};
-            l.push_left(&l.m_empty_node, container.begin(), container.end());                        //empty_node
+            l.push_node_left(&l.m_empty_node, container.begin(), container.end());                        //empty_node
             assert(l.get_size() == 5);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 10 && l.get(3) == 20 && l.get(4) == 30);
 
@@ -1181,15 +1210,35 @@ namespace MIHYCore{
         //push_right(Index, List lvalue)
         //push_right(Index, List rvalue)
         //push_right(Index, Iterator)
-        //위 함수들은 내부에서 push_right(Node, ...)를 호출합니다. 따라서 push_right(Node, ...)의 테스트를 통해 검사합니다.
-
         //push_right(Iterator, lvalue)
         //push_right(Iterator, rvalue)
         //push_right(Iterator, 초기화 리스트)
         //push_right(Iterator, List lvalue)
         //push_right(Iterator, List rvalue)
         //push_right(Iterator, Iterator)
-        //위 함수들은 내부에서 push_right(Node, ...)를 호출합니다. 따라서 push_right(Node, ...)의 테스트를 통해 검사합니다.
+        //위 함수들은 내부에서 push_node_right(Node, ...)를 호출합니다. 따라서 push_node_right(Node, ...)의 테스트를 통해 검사합니다.
+        {
+
+            //함수 시그니처 검사
+            L l{};
+            E e{};
+            L l2{E{}, E{}, E{}};
+            l.push_right(0, e);
+            l.push_right(0, E{});
+            l.push_right(0, {e, e, e});
+            l.push_right(0, l2);
+            l.push_right(0, L{e, e, e});
+            l.push_right(0, l2.begin(), l2.end());
+
+            l.clear();
+            l.push_right(l.begin(), e);
+            l.push_right(l.begin(), E{});
+            l.push_right(l.begin(), {e, e, e});
+            l.push_right(l.begin(), l2);
+            l.push_right(l.begin(), L{e, e, e});
+            l.push_right(l.begin(), l2.begin(), l2.end());
+
+        }
 
         //push_right(Node, lvalue)
         {
@@ -1201,112 +1250,160 @@ namespace MIHYCore{
             E e4{50};
 
             L l{};
-            l.push_right(&l.m_empty_node,              e0);           //리스트가 비었을 경우              10
-            l.push_right(l.m_empty_node.next,          e1);           //head                           10 20
-            l.push_right(l.m_empty_node.prev,          e2);           //tail                          10 20 30
-            l.push_right(l.m_empty_node.next->next,    e3);           //중간 노드                    10 20 40 30
-            l.push_right(&l.m_empty_node,              e4);           //empty_node                 50 10 20 40 30
+            l.push_node_right(&l.m_empty_node,              e0);           //리스트가 비었을 경우              10
+            l.push_node_right(l.m_empty_node.next,          e1);           //head                           10 20
+            l.push_node_right(l.m_empty_node.prev,          e2);           //tail                          10 20 30
+            l.push_node_right(l.m_empty_node.next->next,    e3);           //중간 노드                    10 20 40 30
+            l.push_node_right(&l.m_empty_node,              e4);           //empty_node                 50 10 20 40 30
             assert(l.get_size() == 5);
             assert(l.get(0) == 50 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 40 && l.get(4) == 30);
             
         }
 
-        //push_right(Node, rvalue)
+        //push_node_right(Node, rvalue)
         {
 
             L l{};
-            l.push_right(&l.m_empty_node,           E{10});           //리스트가 비었을 경우              10
-            l.push_right(l.m_empty_node.next,       E{20});           //head                           10 20
-            l.push_right(l.m_empty_node.prev,       E{30});           //tail                          10 20 30
-            l.push_right(l.m_empty_node.next->next, E{40});           //중간 노드                    10 20 40 30
-            l.push_right(&l.m_empty_node,           E{50});           //empty_node                 50 10 20 40 30
+            l.push_node_right(&l.m_empty_node,           E{10});           //리스트가 비었을 경우              10
+            l.push_node_right(l.m_empty_node.next,       E{20});           //head                           10 20
+            l.push_node_right(l.m_empty_node.prev,       E{30});           //tail                          10 20 30
+            l.push_node_right(l.m_empty_node.next->next, E{40});           //중간 노드                    10 20 40 30
+            l.push_node_right(&l.m_empty_node,           E{50});           //empty_node                 50 10 20 40 30
             assert(l.get_size() == 5);
             assert(l.get(0) == 50 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 40 && l.get(4) == 30);
 
         }
 
-        //push_right(Node, 초기화 리스트)        내부에서 push_right(Node, Iterator)를 호출합니다. 따라서 push_right(Node, Iterator)의 테스트를 통해 검사합니다.
-        //push_right(Node, List lvalue)         내부에서 push_right(Node, Iterator)를 호출합니다. 따라서 push_right(Node, Iterator)의 테스트를 통해 검사합니다.
+        //push_node_right(Node, 초기화 리스트)        내부에서 push_node_right(Node, Iterator)를 호출합니다. 따라서 push_node_right(Node, Iterator)의 테스트를 통해 검사합니다.
+        //push_node_right(Node, List lvalue)         내부에서 push_node_right(Node, Iterator)를 호출합니다. 따라서 push_node_right(Node, Iterator)의 테스트를 통해 검사합니다.
         
-        //push_right(Node, List rvalue)
+        //push_node_right(Node, List rvalue)
         {
                 
             L l{};
-            l.push_right(&l.m_empty_node, L{E{10}, E{20}, E{30}});                         //리스트가 비었을 경우
+            l.push_node_right(&l.m_empty_node, L{E{10}, E{20}, E{30}});                         //리스트가 비었을 경우
             assert(l.get_size() == 3);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
 
             l = {E{40}};
-            l.push_right(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //원소가 하나일 경우(head == tail)
+            l.push_node_right(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //원소가 하나일 경우(head == tail)
             assert(l.get_size() == 4);
             assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_right(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //head
+            l.push_node_right(l.m_empty_node.next, L{E{10}, E{20}, E{30}});                     //head
             assert(l.get_size() == 6);
             assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30 && l.get(4) == 50 && l.get(5) == 60);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_right(l.m_empty_node.prev, L{E{10}, E{20}, E{30}});                     //tail
+            l.push_node_right(l.m_empty_node.prev, L{E{10}, E{20}, E{30}});                     //tail
             assert(l.get_size() == 6);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30);
 
             l = {E{40}, E{50}, E{60}, E{70}};
-            l.push_right(l.m_empty_node.next->next->next, L{E{10}, E{20}, E{30}});         //중간 노드
+            l.push_node_right(l.m_empty_node.next->next->next, L{E{10}, E{20}, E{30}});         //중간 노드
             assert(l.get_size() == 7);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30 && l.get(6) == 70);
 
             l = {E{40}, E{50}};
-            l.push_right(&l.m_empty_node, L{E{10}, E{20}, E{30}});                        //empty_node
+            l.push_node_right(&l.m_empty_node, L{E{10}, E{20}, E{30}});                        //empty_node
             assert(l.get_size() == 5);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50);
 
         }
 
-        //push_right(Node, Iterator)
+        //push_node_right(Node, Iterator)
         {
 
             L container{E{10}, E{20}, E{30}};
 
             L l{};
-            l.push_right(&l.m_empty_node, container.begin(), container.end());                         //리스트가 비었을 경우
+            l.push_node_right(&l.m_empty_node, container.begin(), container.end());                         //리스트가 비었을 경우
             assert(l.get_size() == 3);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
 
             l = {E{40}};
-            l.push_right(l.m_empty_node.next, container.begin(), container.end());                     //원소가 하나일 경우(head == tail)
+            l.push_node_right(l.m_empty_node.next, container.begin(), container.end());                     //원소가 하나일 경우(head == tail)
             assert(l.get_size() == 4);
             assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_right(l.m_empty_node.next, container.begin(), container.end());                     //head
+            l.push_node_right(l.m_empty_node.next, container.begin(), container.end());                     //head
             assert(l.get_size() == 6);
             assert(l.get(0) == 40 && l.get(1) == 10 && l.get(2) == 20 && l.get(3) == 30 && l.get(4) == 50 && l.get(5) == 60);
 
             l = {E{40}, E{50}, E{60}};
-            l.push_right(l.m_empty_node.prev, container.begin(), container.end());                     //tail
+            l.push_node_right(l.m_empty_node.prev, container.begin(), container.end());                     //tail
             assert(l.get_size() == 6);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30);
 
             l = {E{40}, E{50}, E{60}, E{70}};
-            l.push_right(l.m_empty_node.next->next->next, container.begin(), container.end());         //중간 노드
+            l.push_node_right(l.m_empty_node.next->next->next, container.begin(), container.end());         //중간 노드
             assert(l.get_size() == 7);
             assert(l.get(0) == 40 && l.get(1) == 50 && l.get(2) == 60 && l.get(3) == 10 && l.get(4) == 20 && l.get(5) == 30 && l.get(6) == 70);
 
             l = {E{40}, E{50}};
-            l.push_right(&l.m_empty_node, container.begin(), container.end());                        //empty_node
+            l.push_node_right(&l.m_empty_node, container.begin(), container.end());                        //empty_node
             assert(l.get_size() == 5);
             assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40 && l.get(4) == 50);
 
         }
 
         //pop_back
+        {
+
+            L l{E{10}, E{20}, E{30}, E{40}, E{50}};
+            l.pop_back();
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30 && l.get(3) == 40);
+            l.pop_back();
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 30);
+
+        }
 
         //pop_front
+        {
 
-        //Iterator 생성자
+            L l{E{10}, E{20}, E{30}, E{40}, E{50}};
+            l.pop_front();
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 20 && l.get(1) == 30 && l.get(2) == 40 && l.get(3) == 50);
+            l.pop_front();
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 30 && l.get(1) == 40 && l.get(2) == 50);
+        }
 
-        //Iterator
+        //pop(Index)
+        {
+
+            L l{E{10}, E{20}, E{30}, E{40}, E{50}};
+            l.pop(2);
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 40 && l.get(3) == 50);
+            l.pop(0);
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 20 && l.get(1) == 40 && l.get(2) == 50);
+            l.pop(l.get_size() - 1);
+            assert(l.get_size() == 2);
+            assert(l.get(0) == 20 && l.get(1) == 40);
+
+        }
+
+        {
+
+            L l{E{10}, E{20}, E{30}, E{40}, E{50}};
+            l.pop(++++l.begin());
+            assert(l.get_size() == 4);
+            assert(l.get(0) == 10 && l.get(1) == 20 && l.get(2) == 40 && l.get(3) == 50);
+            l.pop(l.begin());
+            assert(l.get_size() == 3);
+            assert(l.get(0) == 20 && l.get(1) == 40 && l.get(2) == 50);
+            l.pop(--l.end());
+            assert(l.get_size() == 2);
+            assert(l.get(0) == 20 && l.get(1) == 40);
+
+        }
 
 
     }
