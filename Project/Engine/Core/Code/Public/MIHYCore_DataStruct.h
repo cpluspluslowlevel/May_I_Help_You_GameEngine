@@ -899,6 +899,471 @@ namespace MIHYCore{
 
 
 
+        template<typename Type>
+        class MIHYList;
+
+        template<typename Type>
+        struct MIHYLIST_NODE{
+            Type            value;
+            MIHYLIST_NODE*  prev;
+            MIHYLIST_NODE*  next;        
+        };
+
+        /// @brief          리스트의 반복자입니다.
+        /// @tparam Type    리스트의 원소 타입
+        template<typename Type>
+        class MIHYList_Iterator{
+        public:
+
+            /// @brief 기본 생성자입니다.
+            MIHYList_Iterator() = default;
+            
+            /// @brief          복사 생성자입니다.
+            /// @param lvalue   복사 대상
+            MIHYList_Iterator(const MIHYList_Iterator& lvalue) = default;
+            
+            /// @brief          이동 생성자입니다.
+            /// @param rvalue   이동 대상
+            MIHYList_Iterator(MIHYList_Iterator&& rvalue) noexcept = default;
+            
+            /// @brief 소멸자입니다.
+            ~MIHYList_Iterator() = default;
+            
+            /// @brief          복사 대입 연산자입니다.
+            /// @param lvalue   복사 대상
+            /// @return         스스로의 참조
+            MIHYList_Iterator& operator=(const MIHYList_Iterator& lvalue) = default;
+
+            /// @brief          이동 대입 연산자입니다.
+            /// @param rvalue   이동 대상
+            /// @return         스스로의 참조
+            MIHYList_Iterator& operator=(MIHYList_Iterator&& rvalue) noexcept = default;
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Iterator& operator++(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Iterator operator++(int){
+                MIHYList_Iterator temp{*this};
+                m_node      = m_node->next;
+                return temp;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Iterator& operator--(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Iterator operator--(int){
+                MIHYList_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            /// @brief      역참조 연산자입니다.
+            /// @return     원소의 참조
+            Type& operator*(){
+                return m_node->value;
+            }
+
+            /// @brief      역참조 연산자입니다.
+            /// @return     원소의 참조
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            /// @brief      포인터 연산자입니다.
+            /// @return     원소의 포인터
+            Type* operator->(){
+                return &m_node->value;
+            }
+
+            /// @brief      포인터 연산자입니다.
+            /// @return     원소의 포인터
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         같으면 true, 다르면 false
+            bool operator==(const MIHYList_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         다르면 true, 같으면 false
+            bool operator!=(const MIHYList_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            /// @brief      노드를 반환합니다.
+            /// @return     노드의 포인터
+            const MIHYLIST_NODE<Type>* get_node() const{
+                return m_node;
+            }
+
+        private:
+
+            /// @brief      리스트에서 사용하는 생성자입니다.
+            /// @param list 리스트
+            /// @param node 리스트 내부의 노드
+            MIHYList_Iterator(MIHYList<Type>* list, MIHYLIST_NODE<Type>* node) : m_list{list}, m_node{node}{}
+
+            MIHYList<Type>*             m_list;
+            MIHYLIST_NODE<Type>*        m_node;
+
+            friend class MIHYList<Type>;
+            
+        };
+
+        /// @brief          리스트의 상수 반복자입니다.
+        /// @tparam Type    리스트의 원소 타입
+        template<typename Type>
+        class MIHYList_Const_Iterator{
+        public:
+
+            /// @brief 기본 생성자입니다.
+            MIHYList_Const_Iterator() = default;
+            
+            /// @brief          복사 생성자입니다.
+            /// @param lvalue   복사 대상
+            MIHYList_Const_Iterator(const MIHYList_Const_Iterator& lvalue) = default;
+            
+            /// @brief          이동 생성자입니다.
+            /// @param rvalue   이동 대상
+            MIHYList_Const_Iterator(MIHYList_Const_Iterator&& rvalue) noexcept = default;
+            
+            /// @brief 소멸자입니다.
+            ~MIHYList_Const_Iterator() = default;
+            
+            /// @brief          복사 대입 연산자입니다.
+            /// @param lvalue   복사 대상
+            /// @return         스스로의 참조
+            MIHYList_Const_Iterator& operator=(const MIHYList_Const_Iterator& lvalue) = default;
+
+            /// @brief          이동 대입 연산자입니다.
+            /// @param rvalue   이동 대상
+            /// @return         스스로의 참조
+            MIHYList_Const_Iterator& operator=(MIHYList_Const_Iterator&& rvalue) noexcept = default;
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Const_Iterator& operator++(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Const_Iterator operator++(int){
+                MIHYList_Const_Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+            
+            /// @brief  이전 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Const_Iterator& operator--(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Const_Iterator operator--(int){
+                MIHYList_Const_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            /// @brief      역참조 연산자입니다.
+            /// @return     원소의 참조
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            /// @brief      포인터 연산자입니다.
+            /// @return     원소의 포인터
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         같으면 true, 다르면 false
+            bool operator==(const MIHYList_Const_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         다르면 true, 같으면 false
+            bool operator!=(const MIHYList_Const_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            /// @brief      노드를 반환합니다.
+            const MIHYLIST_NODE<Type>* get_node() const{
+                return m_node;
+            }
+
+        private:
+
+            /// @brief      리스트에서 사용하는 생성자입니다.
+            /// @param list 리스트
+            /// @param node 리스트 내부의 노드
+            MIHYList_Const_Iterator(const MIHYList<Type>* list, const MIHYLIST_NODE<Type>* node) : m_list{list}, m_node{node}{}
+
+            const MIHYList<Type>*       m_list;
+            const MIHYLIST_NODE<Type>*  m_node;
+
+            friend class MIHYList<Type>;
+
+        };
+
+        /// @brief          리스트의 역방향 반복자입니다.
+        /// @tparam Type    리스트의 원소 타입
+        template<typename Type>
+        class MIHYList_Reverse_Iterator{
+        public:
+
+            /// @brief 기본 생성자입니다.
+            MIHYList_Reverse_Iterator() = default;
+            
+            /// @brief          복사 생성자입니다.
+            /// @param lvalue   복사 대상
+            MIHYList_Reverse_Iterator(const MIHYList_Reverse_Iterator& lvalue) = default;
+
+            /// @brief          이동 생성자입니다.
+            /// @param rvalue   이동 대상
+            MIHYList_Reverse_Iterator(MIHYList_Reverse_Iterator&& rvalue) noexcept = default;
+            
+            /// @brief 소멸자입니다.
+            ~MIHYList_Reverse_Iterator() = default;
+            
+            /// @brief          복사 대입 연산자입니다.
+            /// @param lvalue   복사 대상
+            /// @return         스스로의 참조
+            MIHYList_Reverse_Iterator& operator=(const MIHYList_Reverse_Iterator& lvalue) = default;
+
+            /// @brief          이동 대입 연산자입니다.
+            /// @param rvalue   이동 대상
+            /// @return         스스로의 참조
+            MIHYList_Reverse_Iterator& operator=(MIHYList_Reverse_Iterator&& rvalue) noexcept = default;
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Reverse_Iterator& operator++(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Reverse_Iterator operator++(int){
+                MIHYList_Reverse_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Reverse_Iterator& operator--(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Reverse_Iterator operator--(int){
+                MIHYList_Reverse_Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+
+            /// @brief      역참조 연산자입니다.
+            /// @return     원소의 참조
+            Type& operator*(){
+                return m_node->value;
+            }
+
+            /// @brief      역참조 연산자입니다.
+            /// @return     원소의 참조
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            /// @brief      포인터 연산자입니다.
+            /// @return     원소의 포인터
+            Type* operator->(){
+                return &m_node->value;
+            }
+
+            /// @brief      포인터 연산자입니다.
+            /// @return     원소의 포인터
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         같으면 true, 다르면 false
+            bool operator==(const MIHYList_Reverse_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         다르면 true, 같으면 false
+            bool operator!=(const MIHYList_Reverse_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            /// @brief      노드를 반환합니다.
+            /// @return     노드의 포인터
+            const MIHYLIST_NODE<Type>* get_node() const{
+                return m_node;
+            }
+
+        private:
+
+            /// @brief      리스트에서 사용하는 생성자입니다.
+            /// @param list 리스트
+            /// @param node 리스트 내부의 노드
+            MIHYList_Reverse_Iterator(MIHYList<Type>* list, MIHYLIST_NODE<Type>* node) : m_list{list}, m_node{node}{}
+
+            MIHYList<Type>* m_list;
+            MIHYLIST_NODE<Type>*           m_node;
+
+            friend class MIHYList<Type>;
+            
+        };
+
+        /// @brief          리스트의 상수 역방향 반복자입니다.
+        /// @tparam Type    리스트의 원소 타입
+        template<typename Type>
+        class MIHYList_Const_Reverse_Iterator{
+        public:
+
+            /// @brief 기본 생성자입니다.
+            MIHYList_Const_Reverse_Iterator() = default;
+            
+            /// @brief          복사 생성자입니다.
+            /// @param lvalue   복사 대상
+            MIHYList_Const_Reverse_Iterator(const MIHYList_Const_Reverse_Iterator& lvalue) = default;
+            
+            /// @brief          이동 생성자입니다.
+            /// @param rvalue   이동 대상
+            MIHYList_Const_Reverse_Iterator(MIHYList_Const_Reverse_Iterator&& rvalue) noexcept = default;
+            
+            /// @brief 소멸자입니다.
+            ~MIHYList_Const_Reverse_Iterator() = default;
+            
+            /// @brief          복사 대입 연산자입니다.
+            /// @param lvalue   복사 대상
+            /// @return         스스로의 참조
+            MIHYList_Const_Reverse_Iterator& operator=(const MIHYList_Const_Reverse_Iterator& lvalue) = default;
+
+            /// @brief          이동 대입 연산자입니다.
+            /// @param rvalue   이동 대상
+            /// @return         스스로의 참조
+            MIHYList_Const_Reverse_Iterator& operator=(MIHYList_Const_Reverse_Iterator&& rvalue) noexcept = default;
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Const_Reverse_Iterator& operator++(){
+                m_node = m_node->prev;
+                return *this;
+            }
+
+            /// @brief  다음 원소로 이동합니다.
+            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Const_Reverse_Iterator operator++(int){
+                MIHYList_Const_Reverse_Iterator temp{*this};
+                m_node = m_node->prev;
+                return temp;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @return 스스로의 참조
+            MIHYList_Const_Reverse_Iterator& operator--(){
+                m_node = m_node->next;
+                return *this;
+            }
+
+            /// @brief  이전 원소로 이동합니다.
+            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
+            /// @return 기존 원소를 가리키는 반복자
+            MIHYList_Const_Reverse_Iterator operator--(int){
+                MIHYList_Const_Reverse_Iterator temp{*this};
+                m_node = m_node->next;
+                return temp;
+            }
+
+            /// @brief      역참조 연산자입니다.
+            /// @return     원소의 참조
+            const Type& operator*() const{
+                return m_node->value;
+            }
+
+            /// @brief      포인터 연산자입니다.
+            /// @return     원소의 포인터
+            const Type* operator->() const{
+                return &m_node->value;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         같으면 true, 다르면 false
+            bool operator==(const MIHYList_Const_Reverse_Iterator& other) const{
+                return m_node == other.m_node;
+            }
+
+            /// @brief          비교 연산자 입니다.
+            /// @param other    비교할 반복자
+            /// @return         다르면 true, 같으면 false
+            bool operator!=(const MIHYList_Const_Reverse_Iterator& other) const{
+                return m_node != other.m_node;
+            }
+
+            /// @brief      노드를 반환합니다.
+            /// @return     노드의 포인터
+            const MIHYLIST_NODE<Type>* get_node() const{
+                return m_node;
+            }
+
+        private:
+
+            /// @brief      리스트에서 사용하는 생성자입니다.
+            /// @param list 리스트
+            /// @param node 리스트 내부의 노드
+            MIHYList_Const_Reverse_Iterator(const MIHYList<Type>* list, const MIHYLIST_NODE<Type>* node) : m_list{list}, m_node{node}{}
+
+            const MIHYList<Type>*   m_list;
+            const MIHYLIST_NODE<Type>*             m_node;
+
+            friend class MIHYList<Type>;
+
+        };
+
         /// @brief 양방향 연결리스트를 구현한 컨테이너입니다.
         /// @details 원소당 좌우 노드를 가리키기위한 포인터 2개를 갖습니다. 작은 원소를 많이 저장한다면 리스트보다는 벡터 사용을 권장합니다.
         /// @tparam Type 원소의 타입
@@ -906,24 +1371,16 @@ namespace MIHYCore{
         class MIHYList{
         public:
 
-            struct NODE{
-                
-                Type value;
-                NODE* prev;
-                NODE* next;
-
-            };
-
-            class Iterator;
-            class Const_Iterator;
-            class Reverse_Iterator;
-            class Const_Reverse_Iterator;
+            using Iterator                  = MIHYList_Iterator<Type>;
+            using Const_Iterator            = MIHYList_Const_Iterator<Type>;
+            using Reverse_Iterator          = MIHYList_Reverse_Iterator<Type>;
+            using Const_Reverse_Iterator    = MIHYList_Const_Reverse_Iterator<Type>;
 
         private:
 
-            NODE   m_empty_node;        //next를 head로 prev를 tail로 사용합니다. 자체로 하나의 노드입니다. value는 사용하지 않습니다.
-                                        //첫 번째 노드의 이전 노드이자 마지막 노드의 다음 노드입니다.
-                                        //반복자에서 첫 노드 이전이나 마지막 노드 이후 노드를 가리킬 때가 있는데 그 때 이 노드를 가리키면서 nullptr를 가리키지 않게 합니다.
+            MIHYLIST_NODE<Type>   m_empty_node;           //next를 head로 prev를 tail로 사용합니다. 자체로 하나의 노드입니다. value는 사용하지 않습니다.
+                                                    //첫 번째 노드의 이전 노드이자 마지막 노드의 다음 노드입니다.
+                                                    //반복자에서 첫 노드 이전이나 마지막 노드 이후 노드를 가리킬 때가 있는데 그 때 이 노드를 가리키면서 nullptr를 가리키지 않게 합니다.
 
             UInt64  m_size;
 
@@ -940,7 +1397,7 @@ namespace MIHYCore{
                 auto iter_end{list.end()};
                 while(iter != iter_end){
 
-                    m_empty_node.prev = new NODE{std::move(*iter), m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev = new MIHYLIST_NODE{std::move(*iter), m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     ++iter;
@@ -956,7 +1413,7 @@ namespace MIHYCore{
                 auto loop{lvalue.m_empty_node.next};
                 while(loop != lvalue.get_empty_node()){
 
-                    m_empty_node.prev               = new NODE{loop->value, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev               = new MIHYLIST_NODE{loop->value, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                     loop = loop->next;
@@ -985,7 +1442,7 @@ namespace MIHYCore{
 
                 while(begin != end){
 
-                    m_empty_node.prev               = new NODE{*begin, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev               = new MIHYLIST_NODE{*begin, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                     ++begin;
@@ -1025,7 +1482,7 @@ namespace MIHYCore{
 
                     while(iter != list.end()){
 
-                        m_empty_node.prev               = new NODE{iter->value, m_empty_node.prev, &m_empty_node};
+                        m_empty_node.prev               = new MIHYLIST_NODE<Type>{iter->value, m_empty_node.prev, &m_empty_node};
                         m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                         ++iter;
@@ -1083,7 +1540,7 @@ namespace MIHYCore{
 
                     while(lvalue_copy_loop != lvalue.get_empty_node()){
 
-                        m_empty_node.prev               = new NODE{lvalue_copy_loop->value, m_empty_node.prev, &m_empty_node};
+                        m_empty_node.prev               = new MIHYLIST_NODE{lvalue_copy_loop->value, m_empty_node.prev, &m_empty_node};
                         m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                         lvalue_copy_loop = lvalue_copy_loop->next;
@@ -1139,7 +1596,7 @@ namespace MIHYCore{
             /// @param lvalue   추가할 원소
             void push_back(const Type& lvalue){
 
-                m_empty_node.prev               = new NODE{lvalue, m_empty_node.prev, &m_empty_node};
+                m_empty_node.prev               = new MIHYLIST_NODE{lvalue, m_empty_node.prev, &m_empty_node};
                 m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                 ++m_size;
@@ -1150,7 +1607,7 @@ namespace MIHYCore{
             /// @param rvalue   추가할 원소
             void push_back(Type&& rvalue){
 
-                m_empty_node.prev               = new NODE{std::move(rvalue), m_empty_node.prev, &m_empty_node};
+                m_empty_node.prev               = new MIHYLIST_NODE{std::move(rvalue), m_empty_node.prev, &m_empty_node};
                 m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                 ++m_size;
@@ -1179,7 +1636,7 @@ namespace MIHYCore{
                 auto lvalue_node{lvalue.m_empty_node.next};
                 while(lvalue_node != &lvalue.m_empty_node){
 
-                    m_empty_node.prev = new NODE{lvalue_node->value, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev = new MIHYLIST_NODE{lvalue_node->value, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     lvalue_node = lvalue_node->next;
@@ -1222,7 +1679,7 @@ namespace MIHYCore{
 
                 while(begin != end){
 
-                    m_empty_node.prev = new NODE{*begin, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev = new MIHYLIST_NODE{*begin, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     ++begin;
@@ -1236,7 +1693,7 @@ namespace MIHYCore{
             /// @param lvalue   추가할 원소
             void push_front(const Type& lvalue){
 
-                m_empty_node.next               = new NODE{lvalue, &m_empty_node, m_empty_node.next};
+                m_empty_node.next               = new MIHYLIST_NODE{lvalue, &m_empty_node, m_empty_node.next};
                 m_empty_node.next->next->prev   = m_empty_node.next;
 
                 ++m_size;
@@ -1247,7 +1704,7 @@ namespace MIHYCore{
             /// @param rvalue   추가할 원소
             void push_front(Type&& rvalue){
 
-                m_empty_node.next               = new NODE{std::move(rvalue), &m_empty_node, m_empty_node.next};
+                m_empty_node.next               = new MIHYLIST_NODE{std::move(rvalue), &m_empty_node, m_empty_node.next};
                 m_empty_node.next->next->prev   = m_empty_node.next;
 
                 ++m_size;
@@ -1263,7 +1720,7 @@ namespace MIHYCore{
                 auto end{list.end()};
                 while(iter != end){
 
-                    insert_prev->next = new NODE{*iter, insert_prev, insert_prev->next};
+                    insert_prev->next = new MIHYLIST_NODE{*iter, insert_prev, insert_prev->next};
                     insert_prev->next->next->prev = insert_prev->next;
                     insert_prev = insert_prev->next;
 
@@ -1283,7 +1740,7 @@ namespace MIHYCore{
                 auto end{lvalue.cend()};
                 while(iter != end){
 
-                    insert_prev->next = new NODE{*iter, insert_prev, insert_prev->next};
+                    insert_prev->next = new MIHYLIST_NODE{*iter, insert_prev, insert_prev->next};
                     insert_prev->next->next->prev = insert_prev->next;
                     insert_prev = insert_prev->next;
 
@@ -1326,7 +1783,7 @@ namespace MIHYCore{
                 auto insert_prev{&m_empty_node};
                 while(begin != end){
 
-                    insert_prev->next = new NODE{*begin, insert_prev, insert_prev->next};
+                    insert_prev->next = new MIHYLIST_NODE{*begin, insert_prev, insert_prev->next};
                     insert_prev->next->next->prev = insert_prev->next;
                     insert_prev = insert_prev->next;
 
@@ -1635,7 +2092,7 @@ namespace MIHYCore{
             /// @brief          노드를 얻습니다.
             /// @param index    얻을 노드의 인덱스. [0, m_size) 범위에 있어야 합니다.
             /// @return         노드의 포인터
-            const NODE* get_node(UInt64 index) const{
+            const MIHYLIST_NODE<Type>* get_node(UInt64 index) const{
 
                 auto result{m_empty_node.next};
 
@@ -1649,19 +2106,19 @@ namespace MIHYCore{
 
             /// @brief  첫번째 노드를 반환합니다.
             /// @return 첫번째 노드
-            const NODE* get_head_node() const{
+            const MIHYLIST_NODE<Type>* get_head_node() const{
                 return m_empty_node.next;
             }
 
             /// @brief  마지막 노드를 반환합니다.
             /// @return 마지막 노드
-            const NODE* get_tail_node() const{
+            const MIHYLIST_NODE<Type>* get_tail_node() const{
                 return m_empty_node.prev;
             }
 
             /// @brief  빈 컨테이너를 나타내는 노드를 반환합니다.
             /// @return 빈 노드
-            const NODE* get_empty_node() const{
+            const MIHYLIST_NODE<Type>* get_empty_node() const{
                 return &m_empty_node;
             }
 
@@ -1675,7 +2132,7 @@ namespace MIHYCore{
 
             /// @brief          노드를 찾습니다. get_node()와는 달리 상수가 아닙니다. 내부에서만 사용합니다.
             /// @param index    노드의 위치
-            NODE* get_private_node(UInt64 index){
+            MIHYLIST_NODE<Type>* get_private_node(UInt64 index){
 
                 auto result{m_empty_node.next};
 
@@ -1690,9 +2147,9 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 원소
-            void push_node_left(NODE* node, const Type& lvalue){
+            void push_node_left(MIHYLIST_NODE<Type>* node, const Type& lvalue){
 
-                node->prev              = new NODE{lvalue, node->prev, node};
+                node->prev              = new MIHYLIST_NODE<Type>{lvalue, node->prev, node};
                 node->prev->prev->next  = node->prev;
 
                 ++m_size;
@@ -1702,9 +2159,9 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 원소
-            void push_node_left(NODE* node, Type&& rvalue){
+            void push_node_left(MIHYLIST_NODE<Type>* node, Type&& rvalue){
 
-                node->prev              = new NODE{std::move(rvalue), node->prev, node};
+                node->prev              = new MIHYLIST_NODE<Type>{std::move(rvalue), node->prev, node};
                 node->prev->prev->next  = node->prev;
 
                 ++m_size;
@@ -1714,21 +2171,21 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param list     삽입할 원소들의 초기화 리스트
-            void push_node_left(NODE* node, std::initializer_list<Type> list){
+            void push_node_left(MIHYLIST_NODE<Type>* node, std::initializer_list<Type> list){
                 push_node_left(node, list.begin(), list.end());
             }
 
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 리스트
-            void push_node_left(NODE* node, const MIHYList& lvalue){
+            void push_node_left(MIHYLIST_NODE<Type>* node, const MIHYList& lvalue){
                 push_node_left(node, lvalue.cbegin(), lvalue.cend());
             }
 
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 리스트
-            void push_node_left(NODE* node, MIHYList&& rvalue){
+            void push_node_left(MIHYLIST_NODE<Type>* node, MIHYList&& rvalue){
 
                 if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
@@ -1757,7 +2214,7 @@ namespace MIHYCore{
             /// @param  begin                   시작 반복자
             /// @param  end                     끝 반복자
             template<typename Copy_Iterator>
-            void push_node_left(NODE* node, Copy_Iterator begin, Copy_Iterator end){
+            void push_node_left(MIHYLIST_NODE<Type>* node, Copy_Iterator begin, Copy_Iterator end){
                 while(begin != end){
                     push_node_left(node, *begin);
                     ++begin;
@@ -1767,9 +2224,9 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 원소
-            void push_node_right(NODE* node, const Type& lvalue){
+            void push_node_right(MIHYLIST_NODE<Type>* node, const Type& lvalue){
 
-                node->next              = new NODE{lvalue, node, node->next};
+                node->next              = new MIHYLIST_NODE{lvalue, node, node->next};
                 node->next->next->prev  = node->next;
 
                 ++m_size;
@@ -1779,9 +2236,9 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 원소
-            void push_node_right(NODE* node, Type&& rvalue){
+            void push_node_right(MIHYLIST_NODE<Type>* node, Type&& rvalue){
 
-                node->next              = new NODE{std::move(rvalue), node, node->next};
+                node->next              = new MIHYLIST_NODE<Type>{std::move(rvalue), node, node->next};
                 node->next->next->prev  = node->next;
 
                 ++m_size;
@@ -1791,21 +2248,21 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param list     삽입할 원소들의 초기화 리스트
-            void push_node_right(NODE* node, std::initializer_list<Type> list){
+            void push_node_right(MIHYLIST_NODE<Type>* node, std::initializer_list<Type> list){
                 push_node_right(node, list.begin(), list.end());
             }
 
             /// @brief          노드를 오른쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 리스트
-            void push_node_right(NODE* node, const MIHYList& lvalue){
+            void push_node_right(MIHYLIST_NODE<Type>* node, const MIHYList& lvalue){
                 push_node_right(node, lvalue.cbegin(), lvalue.cend());
             }
 
             /// @brief          노드를 오른쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 리스트
-            void push_node_right(NODE* node, MIHYList&& rvalue){
+            void push_node_right(MIHYLIST_NODE<Type>* node, MIHYList&& rvalue){
 
                 if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
@@ -1834,13 +2291,13 @@ namespace MIHYCore{
             /// @param  begin               시작 반복자
             /// @param  end                 끝 반복자
             template<typename Copy_Iterator>
-            void push_node_right(NODE* node, Copy_Iterator begin, Copy_Iterator end){
+            void push_node_right(MIHYLIST_NODE<Type>* node, Copy_Iterator begin, Copy_Iterator end){
                 push_node_left(node->next, begin, end);
             }
 
             /// @brief      원소를 제거합니다.
             /// @param node 제거할 원소의 위치
-            void pop_node(NODE* node){
+            void pop_node(MIHYLIST_NODE<Type>* node){
 
                 assert(node != &m_empty_node);  //빈 노드는 제거할 수 없습니다.
 
@@ -1855,461 +2312,6 @@ namespace MIHYCore{
 
             friend void mihylist_unittest();
 
-
-        };
-
-        /// @brief          리스트의 반복자입니다.
-        /// @tparam Type    리스트의 원소 타입
-        template<typename Type>
-        class MIHYList<Type>::Iterator{
-        public:
-
-            /// @brief 기본 생성자입니다.
-            Iterator() = default;
-            
-            /// @brief          복사 생성자입니다.
-            /// @param lvalue   복사 대상
-            Iterator(const Iterator& lvalue) = default;
-            
-            /// @brief          이동 생성자입니다.
-            /// @param rvalue   이동 대상
-            Iterator(Iterator&& rvalue) noexcept = default;
-            
-            /// @brief 소멸자입니다.
-            ~Iterator() = default;
-            
-            /// @brief          복사 대입 연산자입니다.
-            /// @param lvalue   복사 대상
-            /// @return         스스로의 참조
-            Iterator& operator=(const Iterator& lvalue) = default;
-
-            /// @brief          이동 대입 연산자입니다.
-            /// @param rvalue   이동 대상
-            /// @return         스스로의 참조
-            Iterator& operator=(Iterator&& rvalue) noexcept = default;
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Iterator& operator++(){
-                m_node = m_node->next;
-                return *this;
-            }
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Iterator operator++(int){
-                Iterator temp{*this};
-                m_node      = m_node->next;
-                return temp;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Iterator& operator--(){
-                m_node = m_node->prev;
-                return *this;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Iterator operator--(int){
-                Iterator temp{*this};
-                m_node = m_node->prev;
-                return temp;
-            }
-
-            /// @brief      역참조 연산자입니다.
-            /// @return     원소의 참조
-            Type& operator*(){
-                return m_node->value;
-            }
-
-            /// @brief      역참조 연산자입니다.
-            /// @return     원소의 참조
-            const Type& operator*() const{
-                return m_node->value;
-            }
-
-            /// @brief      포인터 연산자입니다.
-            /// @return     원소의 포인터
-            Type* operator->(){
-                return &m_node->value;
-            }
-
-            /// @brief      포인터 연산자입니다.
-            /// @return     원소의 포인터
-            const Type* operator->() const{
-                return &m_node->value;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         같으면 true, 다르면 false
-            bool operator==(const Iterator& other) const{
-                return m_node == other.m_node;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         다르면 true, 같으면 false
-            bool operator!=(const Iterator& other) const{
-                return m_node != other.m_node;
-            }
-
-            /// @brief      노드를 반환합니다.
-            /// @return     노드의 포인터
-            const NODE* get_node() const{
-                return m_node;
-            }
-
-        private:
-
-            /// @brief      리스트에서 사용하는 생성자입니다.
-            /// @param list 리스트
-            /// @param node 리스트 내부의 노드
-            Iterator(MIHYList<Type>* list, NODE* node) : m_list{list}, m_node{node}{}
-
-            MIHYList<Type>* m_list;
-            NODE*           m_node;
-
-            friend class MIHYList<Type>;
-            
-        };
-
-        /// @brief          리스트의 상수 반복자입니다.
-        /// @tparam Type    리스트의 원소 타입
-        template<typename Type>
-        class MIHYList<Type>::Const_Iterator{
-        public:
-
-            /// @brief 기본 생성자입니다.
-            Const_Iterator() = default;
-            
-            /// @brief          복사 생성자입니다.
-            /// @param lvalue   복사 대상
-            Const_Iterator(const Const_Iterator& lvalue) = default;
-            
-            /// @brief          이동 생성자입니다.
-            /// @param rvalue   이동 대상
-            Const_Iterator(Const_Iterator&& rvalue) noexcept = default;
-            
-            /// @brief 소멸자입니다.
-            ~Const_Iterator() = default;
-            
-            /// @brief          복사 대입 연산자입니다.
-            /// @param lvalue   복사 대상
-            /// @return         스스로의 참조
-            Const_Iterator& operator=(const Const_Iterator& lvalue) = default;
-
-            /// @brief          이동 대입 연산자입니다.
-            /// @param rvalue   이동 대상
-            /// @return         스스로의 참조
-            Const_Iterator& operator=(Const_Iterator&& rvalue) noexcept = default;
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Const_Iterator& operator++(){
-                m_node = m_node->next;
-                return *this;
-            }
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Const_Iterator operator++(int){
-                Const_Iterator temp{*this};
-                m_node = m_node->next;
-                return temp;
-            }
-            
-            /// @brief  이전 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Const_Iterator& operator--(){
-                m_node = m_node->prev;
-                return *this;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Const_Iterator operator--(int){
-                Const_Iterator temp{*this};
-                m_node = m_node->prev;
-                return temp;
-            }
-
-            /// @brief      역참조 연산자입니다.
-            /// @return     원소의 참조
-            const Type& operator*() const{
-                return m_node->value;
-            }
-
-            /// @brief      포인터 연산자입니다.
-            /// @return     원소의 포인터
-            const Type* operator->() const{
-                return &m_node->value;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         같으면 true, 다르면 false
-            bool operator==(const Const_Iterator& other) const{
-                return m_node == other.m_node;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         다르면 true, 같으면 false
-            bool operator!=(const Const_Iterator& other) const{
-                return m_node != other.m_node;
-            }
-
-            /// @brief      노드를 반환합니다.
-            const NODE* get_node() const{
-                return m_node;
-            }
-
-        private:
-
-            /// @brief      리스트에서 사용하는 생성자입니다.
-            /// @param list 리스트
-            /// @param node 리스트 내부의 노드
-            Const_Iterator(const MIHYList<Type>* list, const NODE* node) : m_list{list}, m_node{node}{}
-
-            const MIHYList<Type>*   m_list;
-            const NODE*             m_node;
-
-            friend class MIHYList<Type>;
-
-        };
-
-        /// @brief          리스트의 역방향 반복자입니다.
-        /// @tparam Type    리스트의 원소 타입
-        template<typename Type>
-        class MIHYList<Type>::Reverse_Iterator{
-        public:
-
-            /// @brief 기본 생성자입니다.
-            Reverse_Iterator() = default;
-            
-            /// @brief          복사 생성자입니다.
-            /// @param lvalue   복사 대상
-            Reverse_Iterator(const Reverse_Iterator& lvalue) = default;
-
-            /// @brief          이동 생성자입니다.
-            /// @param rvalue   이동 대상
-            Reverse_Iterator(Reverse_Iterator&& rvalue) noexcept = default;
-            
-            /// @brief 소멸자입니다.
-            ~Reverse_Iterator() = default;
-            
-            /// @brief          복사 대입 연산자입니다.
-            /// @param lvalue   복사 대상
-            /// @return         스스로의 참조
-            Reverse_Iterator& operator=(const Reverse_Iterator& lvalue) = default;
-
-            /// @brief          이동 대입 연산자입니다.
-            /// @param rvalue   이동 대상
-            /// @return         스스로의 참조
-            Reverse_Iterator& operator=(Reverse_Iterator&& rvalue) noexcept = default;
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Reverse_Iterator& operator++(){
-                m_node = m_node->prev;
-                return *this;
-            }
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Reverse_Iterator operator++(int){
-                Reverse_Iterator temp{*this};
-                m_node = m_node->prev;
-                return temp;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Reverse_Iterator& operator--(){
-                m_node = m_node->next;
-                return *this;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Reverse_Iterator operator--(int){
-                Reverse_Iterator temp{*this};
-                m_node = m_node->next;
-                return temp;
-            }
-
-            /// @brief      역참조 연산자입니다.
-            /// @return     원소의 참조
-            Type& operator*(){
-                return m_node->value;
-            }
-
-            /// @brief      역참조 연산자입니다.
-            /// @return     원소의 참조
-            const Type& operator*() const{
-                return m_node->value;
-            }
-
-            /// @brief      포인터 연산자입니다.
-            /// @return     원소의 포인터
-            Type* operator->(){
-                return &m_node->value;
-            }
-
-            /// @brief      포인터 연산자입니다.
-            /// @return     원소의 포인터
-            const Type* operator->() const{
-                return &m_node->value;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         같으면 true, 다르면 false
-            bool operator==(const Reverse_Iterator& other) const{
-                return m_node == other.m_node;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         다르면 true, 같으면 false
-            bool operator!=(const Reverse_Iterator& other) const{
-                return m_node != other.m_node;
-            }
-
-            /// @brief      노드를 반환합니다.
-            /// @return     노드의 포인터
-            const NODE* get_node() const{
-                return m_node;
-            }
-
-        private:
-
-            /// @brief      리스트에서 사용하는 생성자입니다.
-            /// @param list 리스트
-            /// @param node 리스트 내부의 노드
-            Reverse_Iterator(MIHYList<Type>* list, NODE* node) : m_list{list}, m_node{node}{}
-
-            MIHYList<Type>* m_list;
-            NODE*           m_node;
-
-            friend class MIHYList<Type>;
-            
-        };
-
-        /// @brief          리스트의 상수 역방향 반복자입니다.
-        /// @tparam Type    리스트의 원소 타입
-        template<typename Type>
-        class MIHYList<Type>::Const_Reverse_Iterator{
-        public:
-
-            /// @brief 기본 생성자입니다.
-            Const_Reverse_Iterator() = default;
-            
-            /// @brief          복사 생성자입니다.
-            /// @param lvalue   복사 대상
-            Const_Reverse_Iterator(const Const_Reverse_Iterator& lvalue) = default;
-            
-            /// @brief          이동 생성자입니다.
-            /// @param rvalue   이동 대상
-            Const_Reverse_Iterator(Const_Reverse_Iterator&& rvalue) noexcept = default;
-            
-            /// @brief 소멸자입니다.
-            ~Const_Reverse_Iterator() = default;
-            
-            /// @brief          복사 대입 연산자입니다.
-            /// @param lvalue   복사 대상
-            /// @return         스스로의 참조
-            Const_Reverse_Iterator& operator=(const Const_Reverse_Iterator& lvalue) = default;
-
-            /// @brief          이동 대입 연산자입니다.
-            /// @param rvalue   이동 대상
-            /// @return         스스로의 참조
-            Const_Reverse_Iterator& operator=(Const_Reverse_Iterator&& rvalue) noexcept = default;
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Const_Reverse_Iterator& operator++(){
-                m_node = m_node->prev;
-                return *this;
-            }
-
-            /// @brief  다음 원소로 이동합니다.
-            /// @param  후위 증가 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Const_Reverse_Iterator operator++(int){
-                Const_Reverse_Iterator temp{*this};
-                m_node = m_node->prev;
-                return temp;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @return 스스로의 참조
-            Const_Reverse_Iterator& operator--(){
-                m_node = m_node->next;
-                return *this;
-            }
-
-            /// @brief  이전 원소로 이동합니다.
-            /// @param  후위 감소 연산자를 구분하기 위한 더미 인자
-            /// @return 기존 원소를 가리키는 반복자
-            Const_Reverse_Iterator operator--(int){
-                Const_Reverse_Iterator temp{*this};
-                m_node = m_node->next;
-                return temp;
-            }
-
-            /// @brief      역참조 연산자입니다.
-            /// @return     원소의 참조
-            const Type& operator*() const{
-                return m_node->value;
-            }
-
-            /// @brief      포인터 연산자입니다.
-            /// @return     원소의 포인터
-            const Type* operator->() const{
-                return &m_node->value;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         같으면 true, 다르면 false
-            bool operator==(const Const_Reverse_Iterator& other) const{
-                return m_node == other.m_node;
-            }
-
-            /// @brief          비교 연산자 입니다.
-            /// @param other    비교할 반복자
-            /// @return         다르면 true, 같으면 false
-            bool operator!=(const Const_Reverse_Iterator& other) const{
-                return m_node != other.m_node;
-            }
-
-            /// @brief      노드를 반환합니다.
-            /// @return     노드의 포인터
-            const NODE* get_node() const{
-                return m_node;
-            }
-
-        private:
-
-            /// @brief      리스트에서 사용하는 생성자입니다.
-            /// @param list 리스트
-            /// @param node 리스트 내부의 노드
-            Const_Reverse_Iterator(const MIHYList<Type>* list, const NODE* node) : m_list{list}, m_node{node}{}
-
-            const MIHYList<Type>*   m_list;
-            const NODE*             m_node;
-
-            friend class MIHYList<Type>;
 
         };
 
