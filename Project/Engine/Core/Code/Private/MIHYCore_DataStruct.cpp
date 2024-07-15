@@ -642,6 +642,35 @@ namespace MIHYCore{
             assert(reverse_iterator_move.get_node() == l.get_tail_node());
             assert(const_reverse_iterator_move.get_node() == l.get_tail_node());
 
+            //반복자 종류별 상호 변환
+            L::Iterator                const_to_iterator{l.cbegin()};
+            L::Iterator                reverse_to_iterator{l.rbegin()};
+            L::Iterator                reverse_const_to_iterator{l.crbegin()};
+            assert(*const_to_iterator == *l.cbegin());
+            assert(*reverse_to_iterator == *l.rbegin());
+            assert(*reverse_const_to_iterator == *l.crbegin());
+
+            L::Const_Iterator           iterator_to_const{l.begin()};
+            L::Const_Iterator           reverse_to_const{l.rbegin()};
+            L::Const_Iterator           reverse_const_to_const{l.crbegin()};
+            assert(*iterator_to_const == *l.begin());
+            assert(*reverse_to_const == *l.rbegin());
+            assert(*reverse_const_to_const == *l.crbegin());
+
+            L::Reverse_Iterator         iterator_to_reverse{l.begin()};
+            L::Reverse_Iterator         const_to_reverse{l.cbegin()};
+            L::Reverse_Iterator         reverse_const_to_reverse{l.crbegin()};
+            assert(*iterator_to_reverse == *l.begin());
+            assert(*const_to_reverse == *l.cbegin());
+            assert(*reverse_const_to_reverse == *l.crbegin());
+
+            L::Const_Reverse_Iterator   iterator_to_reverse_const{l.begin()};
+            L::Const_Reverse_Iterator   const_to_reverse_const{l.cbegin()};
+            L::Const_Reverse_Iterator   reverse_to_reverse_const{l.rbegin()};
+            assert(*iterator_to_reverse_const == *l.begin());
+            assert(*const_to_reverse_const == *l.cbegin());
+            assert(*reverse_to_reverse_const == *l.rbegin());
+
             //대입 연산자
             iterator_begin                  = iterator_copy;
             const_iterator_begin            = const_iterator_copy;
@@ -1229,14 +1258,6 @@ namespace MIHYCore{
             l.push_right(0, l2);
             l.push_right(0, L{e, e, e});
             l.push_right(0, l2.begin(), l2.end());
-
-            l.clear();
-            l.push_right(l.begin(), e);
-            l.push_right(l.begin(), E{});
-            l.push_right(l.begin(), {e, e, e});
-            l.push_right(l.begin(), l2);
-            l.push_right(l.begin(), L{e, e, e});
-            l.push_right(l.begin(), l2.begin(), l2.end());
 
         }
 
