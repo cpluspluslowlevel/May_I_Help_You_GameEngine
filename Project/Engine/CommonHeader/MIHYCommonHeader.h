@@ -24,6 +24,9 @@ using WChar     = Char16;
 #include <vector>
 #include <list>
 #include <string>
+#include <memory>
+#include <algorithm>
+#include <functional>
 #include <assert.h>
 
 

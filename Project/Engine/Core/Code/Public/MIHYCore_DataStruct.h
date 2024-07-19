@@ -911,6 +911,9 @@ namespace MIHYCore{
 
         template<typename Type>
         class MIHYList_Iterator_Base{
+        protected:
+                        MIHYLIST_NODE<Type>* m_node;
+
         public:
             MIHYList_Iterator_Base() = default;
             MIHYList_Iterator_Base(const MIHYList_Iterator_Base& lvalue) = default;
@@ -931,7 +934,6 @@ namespace MIHYCore{
 
             MIHYList_Iterator_Base(MIHYLIST_NODE<Type>* node) : m_node{node}{}
 
-            MIHYLIST_NODE<Type>* m_node;
 
             friend class MIHYList<Type>;
 
@@ -2080,11 +2082,174 @@ namespace MIHYCore{
 
         };
 
+        /// @brief          해쉬맵 반복자들의 기본 클래스입니다.
+        /// @tparam Type    해쉬맵의 원소 타입
+        template<typename Type>
+        class MIHYHashMap_Iterator_Base{
 
+        };
+
+        /// @brief          해쉬맵 반복자입니다.
+        /// @tparam Type    해쉬맵의 원소 타입
+        template<typename Type>
+        class MIHYHashMap_Iterator : public MIHYHashMap_Iterator_Base<Type>{
+
+            using MIHYHashMap_Iterator_Base<Type>::MIHYHashMap_Iterator_Base;
+
+        };
+
+        /// @brief          해쉬맵 상수 반복자입니다.
+        /// @tparam Type    해쉬맵의 원소 타입
+        template<typename Type>
+        class MIHYHashMap_Const_Iterator : public MIHYHashMap_Iterator_Base<Type>{
+
+            using MIHYHashMap_Iterator_Base<Type>::MIHYHashMap_Iterator_Base;
+
+
+        };
+
+        /// @brief          해쉬맵 역방향 반복자입니다.
+        /// @tparam Type    해쉬맵의 원소 타입
+        template<typename Type>
+        class MIHYHashMap_Reverse_Iterator : public MIHYHashMap_Iterator_Base<Type>{
+
+            using MIHYHashMap_Iterator_Base<Type>::MIHYHashMap_Iterator_Base;
+
+
+        };
+
+        /// @brief          해쉬맵 상수 역방향 반복자입니다.
+        /// @tparam Type    해쉬맵의 원소 타입
+        template<typename Type>
+        class MIHYHashMap_Const_Reverse_Iterator : public MIHYHashMap_Iterator_Base<Type>{
+
+            using MIHYHashMap_Iterator_Base<Type>::MIHYHashMap_Iterator_Base;
+
+
+        };
+
+        template<typename Type>
+        struct MIHYHASHMAP_NODE{
+
+            Type value;
+
+            MIHYHASHMAP_NODE* next;
+
+        };
+
+        template<typename Type>
+        struct MIHYHASHMAP_BUCKET{
+
+            MIHYHASHMAP_NODE<Type>* head;
+
+        };
+
+        /// @brief          해쉬테이블 클래스입니다.
+        /// @tparam Type    해쉬테이블의 원소 타입
+        template<typename Type>
+        class MIHYHashMap{
+        public:
+
+            using Hash_Function = UInt64(const Type&);
+
+        private:
+
+            std::function<Hash_Function> m_hash_function;
+
+            UInt64 m_capacity;
+            UInt64 m_size;
+
+        public:
+
+            /// @brief                  빈 해쉬맵 생성자입니다.
+            /// @param hash_function    해쉬 함수
+            MIHYHashMap(std::function<Hash_Function> hash_function) : m_hash_function{hash_function}, m_capacity{0}, m_size{0}{}
+
+            /// @brief                  초기화 리스트를 입력으로 받는 생성자입니다.
+            /// @param hash_function    해쉬 함수
+            /// @param list             초기화 리스트
+            MIHYHashMap(std::function<Hash_Function> hash_function, std::initializer_list<Type> list) : m_hash_function{hash_function}, m_capacity{0}, m_size{0}{
+                for(auto& element : list){
+                    //insert(element);
+                }
+            }
+
+            /// @brief                  복사 생성자입니다.
+            /// @param hash_function    해쉬 함수
+            /// @param lvalue           복사 대상
+            MIHYHashMap(const MIHYHashMap& lvalue) : m_hash_function{lvalue.m_hash_function}, m_capacity{0}, m_size{0}{
+                for(auto& element : lvalue){
+                    //insert(element);
+                }
+            }
+
+            /// @brief                  이동 생성자입니다.
+            /// @param hash_function    해쉬 함수
+            /// @param rvalue           이동 대상
+            MIHYHashMap(MIHYHashMap&& rvalue) : m_hash_function{std::move(rvalue.m_hash_function)}, m_capacity{0}, m_size{0}{
+                for(auto& element : rvalue){
+                    //insert(element);
+                }
+            }
+           
+            template<typename Copy_Iterator>
+            MIHYHashMap(std::function<Hash_Function> hash_function, Copy_Iterator begin, Copy_Iterator end) : m_hash_function{hash_function}, m_capacity{0}, m_size{0}{
+                for(auto iter = begin; iter != end; ++iter){
+                    //insert(*iter);
+                }
+            }
+
+            MIHYHashMap& operator=(const MIHYHashMap& lvalue){
+
+                clear();
+
+                m_hash_function = lvalue.m_hash_function;
+                m_capacity      = lvalue.m_capacity;
+
+                for(auto& element : lvalue){
+                    //insert(element);
+                }
+
+                return *this;
+
+            }
+
+            MIHYHashMap& operator=(MIHYHashMap&& rvalue){
+
+                clear();
+
+                for(auto& element : rvalue){
+                    //insert(element);
+                }
+
+                return *this;
+
+            }
+
+            //get_rehash_threshold
+
+            //clear
+
+            //reserve_bucket_capacity
+
+            //get_size
+            UInt64 get_size() const{
+                return m_size;
+            }
+
+            //get_capacity
+            UInt64 get_capacity() const{
+                return m_capacity;
+            }
+
+        private:
+
+        };
 
         //Unit test
         MIHYCORE_API void mihyvector_unittest();
         MIHYCORE_API void mihylist_unittest();
+        MIHYCORE_API void mihyhashmap_unittest();
 
 
 

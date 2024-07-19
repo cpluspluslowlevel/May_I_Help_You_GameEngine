@@ -481,6 +481,21 @@ namespace MIHYCore{
             assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
         }
 
+        //생성자(반복자)
+        {
+
+            L l{E{10}, E{20}, E{30}};
+            L l_to_l{l.begin(), l.end()};
+            assert(l_to_l.get_size() == 3);
+            
+
+            MIHYVector<E> v{4, {E{10}, E{20}, E{30}}};
+            L v_to_l{v.begin(), v.end()};
+            assert(v_to_l.get_size() == 3);
+            assert(v_to_l.get(0) == 10 && v_to_l.get(1) == 20 && v_to_l.get(2) == 30);
+
+        }
+
         //대입(초기화 리스트)
         {
             //빈 컨테이너에 대입되는 경우
@@ -513,7 +528,7 @@ namespace MIHYCore{
             #undef f
         }
 
-        //대입
+        //대입(복사)
         {
             //빈 컨테이너에 대입되는 경우
             #define f mihylist_unittest_assignment_test
@@ -545,7 +560,7 @@ namespace MIHYCore{
             #undef f
         }
 
-        //이동
+        //대입(이동)
         {
             L l{E{10}, E{20}, E{30}};
             L move{};
@@ -554,21 +569,6 @@ namespace MIHYCore{
             assert(!move.is_empty());
             assert(move.get_size() == 3);
             assert(move.get(0) == 10 && move.get(1) == 20 && move.get(2) == 30);
-        }
-
-        //생성자(반복자)
-        {
-
-            L l{E{10}, E{20}, E{30}};
-            L l_to_l{l.begin(), l.end()};
-            assert(l_to_l.get_size() == 3);
-            
-
-            MIHYVector<E> v{4, {E{10}, E{20}, E{30}}};
-            L v_to_l{v.begin(), v.end()};
-            assert(v_to_l.get_size() == 3);
-            assert(v_to_l.get(0) == 10 && v_to_l.get(1) == 20 && v_to_l.get(2) == 30);
-
         }
 
         //Iterator begin, end
@@ -1654,6 +1654,62 @@ namespace MIHYCore{
             assert(l.get_head_node() == l.get_tail_node());
         }
         
+    }
+
+    class HashMapElement{
+
+    };
+
+    void mihyhashmap_unittest(){
+
+        using E = HashMapElement;
+        using H = MIHYHashMap<E>;
+
+        //get_size
+
+        //get_capacity
+
+        //get_rehash_threshold
+
+        //clear
+
+        //reserve_capacity
+
+        //생성자(기본)
+        //생성자(초기화 리스트)
+        //생성자(복사 생성자)
+        //생성자(이동 생성자)
+        //생성자(반복자)
+
+        //operator=(초기화 리스트)
+        //operator=(복사)
+        //operator=(이동)
+
+        //Iterator begin, end
+
+        //Iterator operator*
+        //Iterator operator->
+
+        //Iterator operator++
+        //Iterator operator--
+
+        //Iterator operator==
+        //Iterator operator!=
+
+        //Iterator 생성자(기본)
+        //Iterator 생성자(초기화 리스트)
+        //Iterator 생성자(복사 생성자)
+        //Iterator 생성자(이동 생성자)
+        //Iterator 생성자(반복자)
+
+        //Iterator operator=(복사)
+        //Iterator operator=(이동)
+
+
+        //insert
+
+        //delete
+
     }
 
     }
