@@ -2151,24 +2151,38 @@ namespace MIHYCore{
         public:
 
             using Hash_Function = UInt64(const Type&);
+            using NODE          = MIHYHASHMAP_NODE<Type>;
+            using BUCKET        = MIHYHASHMAP_BUCKET<Type>;
+
+            using Iterator                  = MIHYHashMap_Iterator<Type>;
+            using Const_Iterator            = MIHYHashMap_Const_Iterator<Type>;
+            using Reverse_Iterator          = MIHYHashMap_Reverse_Iterator<Type>;
+            using Const_Reverse_Iterator    = MIHYHashMap_Const_Reverse_Iterator<Type>;
+
+            constexpr static UInt64 DEFAULT_BUCKET_CAPACITY = 4;
 
         private:
 
             std::function<Hash_Function> m_hash_function;
 
-            UInt64 m_capacity;
+            UInt64 m_bucket_capacity;
             UInt64 m_size;
+
+            BUCKET* m_bucket_array;
 
         public:
 
             /// @brief                  빈 해쉬맵 생성자입니다.
             /// @param hash_function    해쉬 함수
-            MIHYHashMap(std::function<Hash_Function> hash_function) : m_hash_function{hash_function}, m_capacity{0}, m_size{0}{}
+            MIHYHashMap(std::function<Hash_Function> hash_function) : m_hash_function{hash_function}, m_bucket_capacity{0}, m_size{0}, m_bucket_array{nullptr}{
+                reserve_bucket_capacity(DEFAULT_BUCKET_CAPACITY);
+            }
 
             /// @brief                  초기화 리스트를 입력으로 받는 생성자입니다.
             /// @param hash_function    해쉬 함수
             /// @param list             초기화 리스트
-            MIHYHashMap(std::function<Hash_Function> hash_function, std::initializer_list<Type> list) : m_hash_function{hash_function}, m_capacity{0}, m_size{0}{
+            MIHYHashMap(std::function<Hash_Function> hash_function, std::initializer_list<Type> list) : m_hash_function{hash_function}, m_bucket_capacity{0}, m_size{0}{
+                reserve_bucket_capacity(list.size());
                 for(auto& element : list){
                     //insert(element);
                 }
@@ -2177,7 +2191,8 @@ namespace MIHYCore{
             /// @brief                  복사 생성자입니다.
             /// @param hash_function    해쉬 함수
             /// @param lvalue           복사 대상
-            MIHYHashMap(const MIHYHashMap& lvalue) : m_hash_function{lvalue.m_hash_function}, m_capacity{0}, m_size{0}{
+            MIHYHashMap(const MIHYHashMap& lvalue) : m_hash_function{lvalue.m_hash_function}, m_bucket_capacity{0}, m_size{0}{
+                reserve_bucket_capacity(lvalue.m_bucket_capacity);
                 for(auto& element : lvalue){
                     //insert(element);
                 }
@@ -2186,26 +2201,36 @@ namespace MIHYCore{
             /// @brief                  이동 생성자입니다.
             /// @param hash_function    해쉬 함수
             /// @param rvalue           이동 대상
-            MIHYHashMap(MIHYHashMap&& rvalue) : m_hash_function{std::move(rvalue.m_hash_function)}, m_capacity{0}, m_size{0}{
+            MIHYHashMap(MIHYHashMap&& rvalue) : m_hash_function{std::move(rvalue.m_hash_function)}, m_bucket_capacity{0}, m_size{0}, m_bucket_array{rvalue.m_bucket_array}{
                 for(auto& element : rvalue){
                     //insert(element);
                 }
             }
-           
+
+            /// @brief                  반복자를 받는 생성자입니다.
+            /// @tparam Copy_Iterator   반복자의 타입
+            /// @param hash_function    해쉬 함수
+            /// @param begin            시작 반복자
+            /// @param end              끝 반복자
             template<typename Copy_Iterator>
-            MIHYHashMap(std::function<Hash_Function> hash_function, Copy_Iterator begin, Copy_Iterator end) : m_hash_function{hash_function}, m_capacity{0}, m_size{0}{
+            MIHYHashMap(std::function<Hash_Function> hash_function, Copy_Iterator begin, Copy_Iterator end) : m_hash_function{hash_function}, m_bucket_capacity{0}, m_size{0}{
+                reserve_bucket_capacity(mihyiterator_distance(begin, end));
                 for(auto iter = begin; iter != end; ++iter){
                     //insert(*iter);
                 }
             }
 
+            /// @brief          복사 대입 연산자입니다.
+            /// @param lvalue   복사 대상
+            /// @return         스스로의 참조
             MIHYHashMap& operator=(const MIHYHashMap& lvalue){
 
                 clear();
 
-                m_hash_function = lvalue.m_hash_function;
-                m_capacity      = lvalue.m_capacity;
+                m_hash_function         = lvalue.m_hash_function;
+                m_bucket_capacity       = lvalue.m_bucket_capacity;
 
+                reserve_bucket_capacity(m_bucket_capacity);
                 for(auto& element : lvalue){
                     //insert(element);
                 }
@@ -2239,10 +2264,14 @@ namespace MIHYCore{
 
             //get_capacity
             UInt64 get_capacity() const{
-                return m_capacity;
+                return m_bucket_capacity;
             }
 
         private:
+        
+            UInt64 expand_bucket_capacity(UInt64 capacity){
+                return capacity * 2 + 1;
+            }
 
         };
 
@@ -2279,6 +2308,10 @@ namespace MIHYCore{
             Container::Reverse_Iterator end(){
                 return m_container.rend();
             }
+
+        private:
+
+
 
         };
 
