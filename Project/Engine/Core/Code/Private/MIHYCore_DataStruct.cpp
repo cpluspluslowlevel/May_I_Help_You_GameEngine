@@ -1657,6 +1657,10 @@ namespace MIHYCore{
     }
 
     class HashMapElement{
+    public:
+
+        UInt64 m_key;
+        UInt64 m_value;
 
     };
 
@@ -1665,15 +1669,60 @@ namespace MIHYCore{
         using E = HashMapElement;
         using H = MIHYHashMap<E>;
 
-        //get_size
+        auto hash{[](const E& e){return e.m_key;}};
 
-        //get_capacity
+        //set_hash_function
+        //get_hash_function
+        {
+
+            H h{hash};
+            E e{10, 20};
+            auto hash2{[](const E& e){return e.m_key * 5;}};
+
+            assert(h.get_hash_function()(e) == hash(e));
+
+            h.set_hash_function(hash2);
+            assert(h.get_hash_function()(e) == hash2(e));
+
+            //set_hash_function호출 후 재해싱 되는지 확인합니다.
+            H h2{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            h2.reserve_bucket_table(20);
+            assert(h2.m_bucket_table[1].head->value.m_key == 1 && h2.m_bucket_table[1].head->value.m_value == 10);
+            assert(h2.m_bucket_table[2].head->value.m_key == 2 && h2.m_bucket_table[2].head->value.m_value == 20);
+            assert(h2.m_bucket_table[3].head->value.m_key == 3 && h2.m_bucket_table[3].head->value.m_value == 30);
+
+            h2.set_hash_function(hash2);
+            assert(h2.m_bucket_table[1].head == nullptr);
+            assert(h2.m_bucket_table[2].head == nullptr);
+            assert(h2.m_bucket_table[3].head == nullptr);
+            assert(h2.m_bucket_table[5].head->value.m_key == 1  && h2.m_bucket_table[5].head->value.m_value == 10);
+            assert(h2.m_bucket_table[10].head->value.m_key == 2 && h2.m_bucket_table[10].head->value.m_value == 20);
+            assert(h2.m_bucket_table[15].head->value.m_key == 3 && h2.m_bucket_table[15].head->value.m_value == 30);
+
+        }
+
+        //get_bucket_table_size
+        {
+
+            H h{hash};
+            assert(h.get_bucket_table_size() == h.m_bucket_table_size);
+
+        }
+
+        //get_size
+        {
+
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            assert(h.get_size() == 3 && h.get_size() == h.m_size);
+
+        }
 
         //get_rehash_threshold
+        //set_rehash_threshold
 
         //clear
 
-        //reserve_capacity
+        //reserve_bucket_table
 
         //생성자(기본)
         //생성자(초기화 리스트)

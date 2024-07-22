@@ -12,6 +12,7 @@ int main()
 
     MIHYCore::DataStruct::mihyvector_unittest();
     MIHYCore::DataStruct::mihylist_unittest();
+    MIHYCore::DataStruct::mihyhashmap_unittest();
 
     std::cout << "Test end!" << std::endl;
     
