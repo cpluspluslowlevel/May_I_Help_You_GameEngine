@@ -1662,6 +1662,10 @@ namespace MIHYCore{
         UInt64 m_key;
         UInt64 m_value;
 
+        bool operator==(const HashMapElement& lvalue){
+            return m_key == lvalue.m_key && m_value == lvalue.m_value;
+        }
+
     };
 
     void mihyhashmap_unittest(){
@@ -1670,6 +1674,24 @@ namespace MIHYCore{
         using H = MIHYHashMap<E>;
 
         auto hash{[](const E& e){return e.m_key;}};
+
+        std::unordered_map<int, int> map;
+        auto capacity{map.bucket_count()};
+        for(int i = 0; i < 10; ++i){
+            map.emplace(i, i * 10);
+        }
+        for(auto& e: map){
+            std::cout << e.first << ", ";
+        }
+        std::cout << std::endl;
+        
+        for(int i = 10; i < 30; ++i){
+            map.emplace(i, i * 10);
+        }
+        for(auto& e: map){
+            std::cout << e.first << ", ";
+        }
+        std::cout << std::endl;
 
         //set_hash_function
         //get_hash_function
@@ -1687,17 +1709,17 @@ namespace MIHYCore{
             //set_hash_function호출 후 재해싱 되는지 확인합니다.
             H h2{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
             h2.reserve_bucket_table(20);
-            assert(h2.m_bucket_table[1].head->value.m_key == 1 && h2.m_bucket_table[1].head->value.m_value == 10);
-            assert(h2.m_bucket_table[2].head->value.m_key == 2 && h2.m_bucket_table[2].head->value.m_value == 20);
-            assert(h2.m_bucket_table[3].head->value.m_key == 3 && h2.m_bucket_table[3].head->value.m_value == 30);
+            assert(h2.m_bucket_table.table[1].head->value.m_key == 1 && h2.m_bucket_table.table[1].head->value.m_value == 10);
+            assert(h2.m_bucket_table.table[2].head->value.m_key == 2 && h2.m_bucket_table.table[2].head->value.m_value == 20);
+            assert(h2.m_bucket_table.table[3].head->value.m_key == 3 && h2.m_bucket_table.table[3].head->value.m_value == 30);
 
             h2.set_hash_function(hash2);
-            assert(h2.m_bucket_table[1].head == nullptr);
-            assert(h2.m_bucket_table[2].head == nullptr);
-            assert(h2.m_bucket_table[3].head == nullptr);
-            assert(h2.m_bucket_table[5].head->value.m_key == 1  && h2.m_bucket_table[5].head->value.m_value == 10);
-            assert(h2.m_bucket_table[10].head->value.m_key == 2 && h2.m_bucket_table[10].head->value.m_value == 20);
-            assert(h2.m_bucket_table[15].head->value.m_key == 3 && h2.m_bucket_table[15].head->value.m_value == 30);
+            assert(h2.m_bucket_table.table[1].head == nullptr);
+            assert(h2.m_bucket_table.table[2].head == nullptr);
+            assert(h2.m_bucket_table.table[3].head == nullptr);
+            assert(h2.m_bucket_table.table[5].head->value.m_key == 1  && h2.m_bucket_table.table[5].head->value.m_value == 10);
+            assert(h2.m_bucket_table.table[10].head->value.m_key == 2 && h2.m_bucket_table.table[10].head->value.m_value == 20);
+            assert(h2.m_bucket_table.table[15].head->value.m_key == 3 && h2.m_bucket_table.table[15].head->value.m_value == 30);
 
         }
 
@@ -1705,7 +1727,7 @@ namespace MIHYCore{
         {
 
             H h{hash};
-            assert(h.get_bucket_table_size() == h.m_bucket_table_size);
+            assert(h.get_bucket_table_size() == h.m_bucket_table.size);
 
         }
 
@@ -1719,20 +1741,60 @@ namespace MIHYCore{
 
         //get_rehash_threshold
         //set_rehash_threshold
+        {
+
+            H h{hash};
+
+            assert(h.get_rehash_threshold() == h.DEFAULT_REHASH_THRESHOLD);
+            assert(h.get_rehash_threshold() == h.m_rehash_threshold);
+
+
+            //set_rehash_threshold을 호출하면 재해싱이 일어나도록 유도합니다.
+            h.set_rehash_threshold(0.8);
+            h.reserve_bucket_table(10);
+            UInt64 key = 0;
+            for(UInt64 i = 0; i < h.get_bucket_table_size() / 2; ++i){
+                h.insert(E{key, key * 10});
+                ++key;
+            }
+
+            //재해싱 확인
+            UInt64 bucket_table_size_before{h.get_bucket_table_size()};
+            h.set_rehash_threshold(0.3);
+            assert(h.get_bucket_table_size() > bucket_table_size_before);
+            
+            for(UInt64 i = 0; i < key; ++i){
+                assert(h.find(E{i, i * 10}).m_key == i);
+                assert(h.find(E{i, i * 10}).m_value == i * 10ULL);
+            }
+
+        }
 
         //clear
+        {
+
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            assert(h.get_size() == 3);
+
+            h.clear();
+            assert(h.get_size() == 0);
+            for(UInt64 i = 0; i < h.get_bucket_table_size(); ++i){
+                assert(h.m_bucket_table.table[i].head == nullptr);
+            }
+
+        }
 
         //reserve_bucket_table
+        {
 
-        //생성자(기본)
-        //생성자(초기화 리스트)
-        //생성자(복사 생성자)
-        //생성자(이동 생성자)
-        //생성자(반복자)
+            H h{hash};
 
-        //operator=(초기화 리스트)
-        //operator=(복사)
-        //operator=(이동)
+            UInt64 bucket_table_size_before{h.get_bucket_table_size()};
+            h.reserve_bucket_table(bucket_table_size_before * 2);
+
+            assert(h.get_bucket_table_size() >= bucket_table_size_before * 2);
+
+        }
 
         //Iterator begin, end
 
@@ -1754,10 +1816,85 @@ namespace MIHYCore{
         //Iterator operator=(복사)
         //Iterator operator=(이동)
 
+        //생성자(기본)
+        {
+
+            H h{hash};
+            assert(h.get_size() == 0);          //생성자 호출이 문제가 없는지
+
+            h.insert(E{1, 10});                //생성자 호출 후 사용해도 문제가 없는지
+            assert(h.get_size() == 1);
+            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+
+        }
+
+        //생성자(초기화 리스트)
+        {
+
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            assert(h.get_size() == 3);
+            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
+            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+
+            h.insert(E{4, 40});                //생성자 호출 후 사용해도 문제가 없는지
+            assert(h.get_size() == 4);
+            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
+            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+            assert(h.find(E{4, 40}).m_key == 4 && h.find(E{4, 40}).m_value == 40);
+
+        }
+
+        //생성자(복사 생성자)
+        {
+/*
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            assert(h.get_size() == 3);
+            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
+            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+
+            H copy{h};
+            assert(copy.get_size() == 3);
+            assert(copy.find(E{1, 10}).m_key == 1 && copy.find(E{1, 10}).m_value == 10);
+            assert(copy.find(E{2, 20}).m_key == 2 && copy.find(E{2, 20}).m_value == 20);
+            assert(copy.find(E{3, 30}).m_key == 3 && copy.find(E{3, 30}).m_value == 30);
+
+            assert(h.get_size() == 3);
+            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
+            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+
+            copy.insert(E{4, 40});          //생성자 호출 후 사용해도 문제가 없는지
+            assert(copy.get_size() == 4);
+            assert(copy.find(E{1, 10}).m_key == 1 && copy.find(E{1, 10}).m_value == 10);
+            assert(copy.find(E{2, 20}).m_key == 2 && copy.find(E{2, 20}).m_value == 20);
+            assert(copy.find(E{3, 30}).m_key == 3 && copy.find(E{3, 30}).m_value == 30);
+            assert(copy.find(E{4, 40}).m_key == 4 && copy.find(E{4, 40}).m_value == 40);
+
+            assert(h.get_size() == 3);
+            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
+            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+*/
+        }
+
+        //생성자(이동 생성자)
+        //생성자(반복자)
+
+        //operator=(초기화 리스트)
+        //operator=(복사)
+        //operator=(이동)
+
+        
+
 
         //insert
 
         //delete
+
+        //find
 
     }
 
