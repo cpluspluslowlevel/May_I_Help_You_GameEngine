@@ -1267,11 +1267,13 @@ namespace MIHYCore{
             using Reverse_Iterator          = MIHYList_Reverse_Iterator<Type>;
             using Const_Reverse_Iterator    = MIHYList_Const_Reverse_Iterator<Type>;
 
+            using NODE = MIHYLIST_NODE<Type>;
+
         private:
 
-            MIHYLIST_NODE<Type>   m_empty_node;           //next를 head로 prev를 tail로 사용합니다. 자체로 하나의 노드입니다. value는 사용하지 않습니다.
-                                                    //첫 번째 노드의 이전 노드이자 마지막 노드의 다음 노드입니다.
-                                                    //반복자에서 첫 노드 이전이나 마지막 노드 이후 노드를 가리킬 때가 있는데 그 때 이 노드를 가리키면서 nullptr를 가리키지 않게 합니다.
+            NODE   m_empty_node;           //next를 head로 prev를 tail로 사용합니다. 자체로 하나의 노드입니다. value는 사용하지 않습니다.
+                                           //첫 번째 노드의 이전 노드이자 마지막 노드의 다음 노드입니다.
+                                           //반복자에서 첫 노드 이전이나 마지막 노드 이후 노드를 가리킬 때가 있는데 그 때 이 노드를 가리키면서 nullptr를 가리키지 않게 합니다.
 
             UInt64  m_size;
 
@@ -1288,7 +1290,7 @@ namespace MIHYCore{
                 auto iter_end{list.end()};
                 while(iter != iter_end){
 
-                    m_empty_node.prev = new MIHYLIST_NODE{std::move(*iter), m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev = new NODE{std::move(*iter), m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     ++iter;
@@ -1304,7 +1306,7 @@ namespace MIHYCore{
                 auto loop{lvalue.m_empty_node.next};
                 while(loop != lvalue.get_empty_node()){
 
-                    m_empty_node.prev               = new MIHYLIST_NODE{loop->value, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev               = new NODE{loop->value, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                     loop = loop->next;
@@ -1333,7 +1335,7 @@ namespace MIHYCore{
 
                 while(begin != end){
 
-                    m_empty_node.prev               = new MIHYLIST_NODE{*begin, m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev               = new NODE{*begin, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                     ++begin;
@@ -1373,7 +1375,7 @@ namespace MIHYCore{
 
                     while(iter != list.end()){
 
-                        m_empty_node.prev               = new MIHYLIST_NODE<Type>{iter->value, m_empty_node.prev, &m_empty_node};
+                        m_empty_node.prev               = new NODE{iter->value, m_empty_node.prev, &m_empty_node};
                         m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                         ++iter;
@@ -1859,7 +1861,7 @@ namespace MIHYCore{
             /// @brief          노드를 얻습니다.
             /// @param index    얻을 노드의 인덱스. [0, m_size) 범위에 있어야 합니다.
             /// @return         노드의 포인터
-            const MIHYLIST_NODE<Type>* get_node(UInt64 index) const{
+            const NODE* get_node(UInt64 index) const{
 
                 auto result{m_empty_node.next};
 
@@ -1873,19 +1875,19 @@ namespace MIHYCore{
 
             /// @brief  첫번째 노드를 반환합니다.
             /// @return 첫번째 노드
-            const MIHYLIST_NODE<Type>* get_head_node() const{
+            const NODE* get_head_node() const{
                 return m_empty_node.next;
             }
 
             /// @brief  마지막 노드를 반환합니다.
             /// @return 마지막 노드
-            const MIHYLIST_NODE<Type>* get_tail_node() const{
+            const NODE* get_tail_node() const{
                 return m_empty_node.prev;
             }
 
             /// @brief  빈 컨테이너를 나타내는 노드를 반환합니다.
             /// @return 빈 노드
-            const MIHYLIST_NODE<Type>* get_empty_node() const{
+            const NODE* get_empty_node() const{
                 return &m_empty_node;
             }
 
@@ -1899,7 +1901,7 @@ namespace MIHYCore{
 
             /// @brief          노드를 찾습니다. get_node()와는 달리 상수가 아닙니다. 내부에서만 사용합니다.
             /// @param index    노드의 위치
-            MIHYLIST_NODE<Type>* get_private_node(UInt64 index){
+            NODE* get_private_node(UInt64 index){
 
                 auto result{m_empty_node.next};
 
@@ -1914,9 +1916,9 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 원소
-            void push_node_left(MIHYLIST_NODE<Type>* node, const Type& lvalue){
+            void push_node_left(NODE* node, const Type& lvalue){
 
-                node->prev              = new MIHYLIST_NODE<Type>{lvalue, node->prev, node};
+                node->prev              = new NODE{lvalue, node->prev, node};
                 node->prev->prev->next  = node->prev;
 
                 ++m_size;
@@ -1926,9 +1928,9 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 원소
-            void push_node_left(MIHYLIST_NODE<Type>* node, Type&& rvalue){
+            void push_node_left(NODE* node, Type&& rvalue){
 
-                node->prev              = new MIHYLIST_NODE<Type>{std::move(rvalue), node->prev, node};
+                node->prev              = new NODE{std::move(rvalue), node->prev, node};
                 node->prev->prev->next  = node->prev;
 
                 ++m_size;
@@ -1938,21 +1940,21 @@ namespace MIHYCore{
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param list     삽입할 원소들의 초기화 리스트
-            void push_node_left(MIHYLIST_NODE<Type>* node, std::initializer_list<Type> list){
+            void push_node_left(NODE* node, std::initializer_list<Type> list){
                 push_node_left(node, list.begin(), list.end());
             }
 
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 리스트
-            void push_node_left(MIHYLIST_NODE<Type>* node, const MIHYList& lvalue){
+            void push_node_left(NODE* node, const MIHYList& lvalue){
                 push_node_left(node, lvalue.cbegin(), lvalue.cend());
             }
 
             /// @brief          노드를 왼쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 리스트
-            void push_node_left(MIHYLIST_NODE<Type>* node, MIHYList&& rvalue){
+            void push_node_left(NODE* node, MIHYList&& rvalue){
 
                 if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
@@ -1981,7 +1983,7 @@ namespace MIHYCore{
             /// @param  begin                   시작 반복자
             /// @param  end                     끝 반복자
             template<typename Copy_Iterator>
-            void push_node_left(MIHYLIST_NODE<Type>* node, Copy_Iterator begin, Copy_Iterator end){
+            void push_node_left(NODE* node, Copy_Iterator begin, Copy_Iterator end){
                 while(begin != end){
                     push_node_left(node, *begin);
                     ++begin;
@@ -1991,9 +1993,9 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 원소
-            void push_node_right(MIHYLIST_NODE<Type>* node, const Type& lvalue){
+            void push_node_right(NODE* node, const Type& lvalue){
 
-                node->next              = new MIHYLIST_NODE{lvalue, node, node->next};
+                node->next              = new NODE{lvalue, node, node->next};
                 node->next->next->prev  = node->next;
 
                 ++m_size;
@@ -2003,9 +2005,9 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다. 내부적으로만 사용합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 원소
-            void push_node_right(MIHYLIST_NODE<Type>* node, Type&& rvalue){
+            void push_node_right(NODE* node, Type&& rvalue){
 
-                node->next              = new MIHYLIST_NODE<Type>{std::move(rvalue), node, node->next};
+                node->next              = new NODE{std::move(rvalue), node, node->next};
                 node->next->next->prev  = node->next;
 
                 ++m_size;
@@ -2015,21 +2017,21 @@ namespace MIHYCore{
             /// @brief          노드를 오른쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param list     삽입할 원소들의 초기화 리스트
-            void push_node_right(MIHYLIST_NODE<Type>* node, std::initializer_list<Type> list){
+            void push_node_right(NODE* node, std::initializer_list<Type> list){
                 push_node_right(node, list.begin(), list.end());
             }
 
             /// @brief          노드를 오른쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param lvalue   삽입할 리스트
-            void push_node_right(MIHYLIST_NODE<Type>* node, const MIHYList& lvalue){
+            void push_node_right(NODE* node, const MIHYList& lvalue){
                 push_node_right(node, lvalue.cbegin(), lvalue.cend());
             }
 
             /// @brief          노드를 오른쪽에 삽입합니다.
             /// @param node     삽입할 위치의 노드
             /// @param rvalue   삽입할 리스트
-            void push_node_right(MIHYLIST_NODE<Type>* node, MIHYList&& rvalue){
+            void push_node_right(NODE* node, MIHYList&& rvalue){
 
                 if(rvalue.m_size == 0){     //빈 리스트인 경우 예외처리. 밑에서 리스트가 비어있을 가능성을 배제합니다.
                     return;
@@ -2058,7 +2060,7 @@ namespace MIHYCore{
             /// @param  begin               시작 반복자
             /// @param  end                 끝 반복자
             template<typename Copy_Iterator>
-            void push_node_right(MIHYLIST_NODE<Type>* node, Copy_Iterator begin, Copy_Iterator end){
+            void push_node_right(NODE* node, Copy_Iterator begin, Copy_Iterator end){
                 push_node_left(node->next, begin, end);
             }
 
@@ -2083,18 +2085,10 @@ namespace MIHYCore{
         };
 
         template<typename Type>
-        struct MIHYHASHMAP_NODE{
-
-            Type value{};
-
-            MIHYHASHMAP_NODE* next{nullptr};
-
-        };
-
-        template<typename Type>
         struct MIHYHASHMAP_BUCKET{
 
-            MIHYHASHMAP_NODE<Type>* head{nullptr};
+            MIHYList<Type>::NODE* head{nullptr};
+            MIHYList<Type>::NODE* tail{nullptr};
 
         };
 
@@ -2116,7 +2110,6 @@ namespace MIHYCore{
         protected:
 
             UInt64                  m_bucket_index;
-            MIHYHASHMAP_NODE<Type>* m_node;
 
             MIHYHASHMAP_BUCKET_TABLE<Type>* m_bucket_table;
         };
@@ -2168,9 +2161,12 @@ namespace MIHYCore{
 
             using Key      = Type;
             using Value    = Type;
+            using Element  = Type;
+
+            using List = MIHYList<Element>;
 
             using Hash_Function = UInt64(const Key&);
-            using NODE          = MIHYHASHMAP_NODE<Type>;
+            using NODE          = List::NODE;
             using BUCKET        = MIHYHASHMAP_BUCKET<Type>;
 
             using Iterator                  = MIHYHashMap_Iterator<Type>;
