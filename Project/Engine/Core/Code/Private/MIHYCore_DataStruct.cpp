@@ -1676,6 +1676,8 @@ namespace MIHYCore{
         auto hash{[](const E& e){return e.m_key;}};
 
         std::unordered_map<int, int> map;
+        std::unordered_map<int, int> map2;
+        map.insert(map2);
         auto capacity{map.bucket_count()};
         for(int i = 0; i < 10; ++i){
             map.emplace(i, i * 10);
