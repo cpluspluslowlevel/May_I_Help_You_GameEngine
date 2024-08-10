@@ -2174,6 +2174,12 @@ namespace MIHYCore{
             using Reverse_Iterator          = MIHYHashMap_Reverse_Iterator<Type>;
             using Const_Reverse_Iterator    = MIHYHashMap_Const_Reverse_Iterator<Type>;
 
+            struct FIND_INSERTION_RESULT{
+                bool                is_duplicated;
+                List::Iterator      node;               //is_duplicated가 faluse면 삽일할 위치를 가리킵니다.
+                                                        //is_duplicated가 true면 중복된 원소를 가리킵니다.
+            };
+
             constexpr static UInt64     DEFAULT_BUCKET_TABLE_SIZE   = 4;
             constexpr static Float64    DEFAULT_REHASH_THRESHOLD    = 0.75;
 
@@ -2181,11 +2187,10 @@ namespace MIHYCore{
 
             std::function<Hash_Function> m_hash_function;
 
-            MIHYHASHMAP_BUCKET_TABLE<Type> m_bucket_table;
+            MIHYHASHMAP_BUCKET_TABLE<Type>  m_bucket_table;
+            List                            m_node_list;
 
-            List m_node_list;
-
-            float m_rehash_threshold;
+            Float64 m_rehash_threshold;
 
 
         public:
@@ -2204,11 +2209,11 @@ namespace MIHYCore{
             /// @param list             초기화 리스트
             MIHYHashMap(std::function<Hash_Function> hash_function, std::initializer_list<Type> list) : m_hash_function{hash_function},
                                                                                                         m_bucket_table{nullptr, 0ULL},
-                                                                                                        m_node_list{list},
+                                                                                                        m_node_list{},
                                                                                                         m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
-                reserve_bucket_table(m_node_list.get_size());
-                for(auto node{m_node_list.get_head_node()}; node != m_node_list.get_enpty_node(); node = node->next){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(node);
+                reserve_bucket_table(list.size());
+                for(auto& element : list){
+                    insert_uncheck_rehash_threshold(std::move(element));
                 }
             }
 
@@ -2217,11 +2222,11 @@ namespace MIHYCore{
             /// @param lvalue           복사 대상
             MIHYHashMap(const MIHYHashMap& lvalue) : m_hash_function{lvalue.m_hash_function},
                                                      m_bucket_table{0, nullptr},
-                                                     m_node_list{lvalue.m_node_list},
+                                                     m_node_list{},
                                                      m_rehash_threshold{lvalue.m_rehash_threshold}{
-                reserve_bucket_table(m_node_list.get_size());
-                for(auto node{m_node_list.get_head_node()}; node != m_node_list.get_enpty_node(); node = node->next){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(node);
+                reserve_bucket_table(lvalue.m_size);
+                for(auto& element : lvalue){
+                    insert_uncheck_rehash_threshold(element);
                 }
             }
 
@@ -2246,11 +2251,11 @@ namespace MIHYCore{
             template<typename Copy_Iterator>
             MIHYHashMap(std::function<Hash_Function> hash_function, Copy_Iterator begin, Copy_Iterator end) : m_hash_function{hash_function},
                                                                                                               m_bucket_table{0, nullptr},
-                                                                                                              m_node_list{begin, end},
+                                                                                                              m_node_list{},
                                                                                                               m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
-                reserve_bucket_table(m_node_list.get_size());
-                for(auto node{m_node_list.get_head_node()}; node != m_node_list.get_enpty_node(); node = node->next){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(node);
+                reserve_bucket_table(calculate_bucket_table_size(mihyhashmap_unittest(begin, end), m_rehash_threshold));
+                for(auto iter = begin; iter != end; ++iter){
+                    insert_uncheck_rehash_threshold(*iter);
                 }
             }
 
@@ -2262,12 +2267,11 @@ namespace MIHYCore{
                 clear();
 
                 m_hash_function         = lvalue.m_hash_function;
-                m_node_list             = lvalue.m_node_list;
                 m_rehash_threshold      = lvalue.m_rehash_threshold;
 
-                reserve_bucket_table(m_node_list.get_size());
-                for(auto node{m_node_list.get_head()}; node != m_node_list.get_empty_node(); node = node->next){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(node);
+                reserve_bucket_table(lvalue.m_bucket_table.size);
+                for(auto& element : lvalue){
+                    insert_uncheck_rehash_threshold(element);
                 }
 
                 return *this;
@@ -2280,10 +2284,14 @@ namespace MIHYCore{
             MIHYHashMap& operator=(MIHYHashMap&& rvalue){
 
                 clear();
+                delete[] m_bucket_table.table;
+                m_bucket_table.table = nullptr;
+                m_bucket_table.size = 0;
 
                 m_hash_function         = std::move(rvalue.m_hash_function);
-                m_bucket_table          = std::move(rvalue.m_bucket_table);
-                m_node_list             = std::move(rvalue.m_node_list);
+                m_bucket_table.table    = rvalue.m_bucket_table.table;
+                m_bucket_table.size     = rvalue.m_bucket_table.size;
+                m_node_list             = std::move(rvalue.mnode_list);
                 m_rehash_threshold      = rvalue.m_rehash_threshold;
 
                 rvalue.m_bucket_table.size      = 0;
@@ -2298,7 +2306,7 @@ namespace MIHYCore{
             /// @brief          원소를 추가합니다.
             /// @param lvalue   추가 대상
             void insert(const Type& lvalue){
-                insert_uncheck_rehash_threshold_and_not_insert_list_node(lvalue);
+                insert_uncheck_rehash_threshold(lvalue);
                 ++m_size;
                 try_expanding_bucket_table();
             }
@@ -2306,7 +2314,7 @@ namespace MIHYCore{
             /// @brief          원소를 추가합니다.
             /// @param rvalue   추가 대상
             void insert(Type&& rvalue){
-                insert_uncheck_rehash_threshold_and_not_insert_list_node(std::move(rvalue));
+                insert_uncheck_rehash_threshold(std::move(rvalue));
                 ++m_size;
                 try_expanding_bucket_table();
             }
@@ -2316,7 +2324,7 @@ namespace MIHYCore{
             void insert(std::initializer_list<Type> list){
 
                 for(auto& element: list){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(std::move(element));
+                    insert_uncheck_rehash_threshold(std::move(element));
                 }
 
                 m_size += list.size();
@@ -2330,7 +2338,7 @@ namespace MIHYCore{
             void insert(const MIHYHashMap& lvalue){
 
                 for(auto& element : lvalue){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(element);
+                    insert_uncheck_rehash_threshold(element);
                 }
 
                 m_size += lvalue.m_size;
@@ -2349,7 +2357,7 @@ namespace MIHYCore{
                     while(loop_node != nullptr){
                         auto insert_node{loop_node};
                         loop_node = loop_node->next;
-                        insert_uncheck_rehash_threshold_and_not_insert_list_node(insert_node);
+                        insert_uncheck_rehash_threshold(insert_node);
                     }
 
                     rvalue.m_bucket_table.table[i].head = nullptr;
@@ -2371,7 +2379,7 @@ namespace MIHYCore{
 
                 UInt64 increase_size = 0;
                 while(begin != end){
-                    insert_uncheck_rehash_threshold_and_not_insert_list_node(*begin);
+                    insert_uncheck_rehash_threshold(*begin);
                     ++begin;
                     ++increase_size;
                 }
@@ -2502,29 +2510,41 @@ namespace MIHYCore{
                 return current_capacity * 2 + 1;
             }
 
-            /// @brief              재해싱을 시도합니다.
+            /// @brief                  일정 개수의 원소를 저장할 수 있는 버킷 테이블의 크기를 계산합니다.
+            /// @param element_number   원소의 개수
+            /// @param rehash_threshold 재해싱 임계값
+            /// @return                 원소의 개수만큼 저장할 수 있는 버킷 테이블의 크기
+            UInt64 calculate_bucket_table_size(Uint64 element_number, float32 rehash_threshold){
+                return element_number / m_rehash_threshold);
+            }
+
+            /// @brief              재해싱을 시도합니다. 재히싱을 할 필요가 있을 때만 재행싱됩니다.
             void try_expanding_bucket_table(){
-                reserve_bucket_table(m_size * (1.0f / m_rehash_threshold));
+                reserve_bucket_table(calculate_bucket_table_size(m_Size, m_rehash_threshold));
             }
 
-            void insert_uncheck_rehash_threshold_and_not_increase_size(const Type& lvalue){
-                insert_uncheck_rehash_threshold_and_not_insert_list_node(new NODE{lvalue, nullptr});
+            void insert_uncheck_rehash_threshold(const Type& lvalue, BUCKET* bucket_table, UInt64 bucket_table_size){
+
+                UInt64      bucket_index{hash(lvalue, bucket_table_size) % bucket_table_size};
+                BUCKET*     bucket{bucket_table[bucket_index]};
+
+                NODE* loop_node{bucket->head};
+                while(true){
+
+                    if(loop_node->value == lvalue){
+                        return;
+                    }
+
+                    if(loop_node == bucket->tail){
+                        break;
+                    }
+
+                }
+
             }
 
-            void insert_uncheck_rehash_threshold_and_not_increase_size(Type&& rvalue){
-                insert_uncheck_rehash_threshold_and_not_insert_list_node(new NODE{std::move(rvalue), nullptr});
-            }
-
-            void insert_uncheck_rehash_threshold_and_not_insert_list_node(NODE* node){
-                insert_uncheck_rehash_threshold_and_not_insert_list_node(node, m_bucket_table.table, m_bucket_table.size);
-            }
-
-            void insert_uncheck_rehash_threshold_and_not_insert_list_node(NODE* node, BUCKET* bucket_table, UInt64 bucket_table_size){
-
-                auto bucket_index{hash(node->value, bucket_table_size)};
-                node->next                      = bucket_table[bucket_index].head;
-                bucket_table[bucket_index].head = node;
-
+            void insert_uncheck_rehash_threshold(Type&& rvalue){
+                insert_uncheck_rehash_threshold(new NODE{std::move(rvalue), nullptr});
             }
 
             /// @brief                  해쉬 테이블을 재구성합니다.
@@ -2547,7 +2567,7 @@ namespace MIHYCore{
                             auto rehash_node{loop_node};
                             loop_node = loop_node->next;
 
-                            insert_uncheck_rehash_threshold_and_not_insert_list_node(rehash_node, new_table, new_table_size);
+                            insert_uncheck_rehash_threshold(rehash_node, new_table, new_table_size);
 
                         }
 
@@ -2582,7 +2602,7 @@ namespace MIHYCore{
                         
                         auto insert_node{loop_node};
                         loop_node = loop_node->next;
-                        insert_uncheck_rehash_threshold_and_not_insert_list_node(insert_node, new_table, new_table_size);
+                        insert_uncheck_rehash_threshold(insert_node, new_table, new_table_size);
                     }
 
                 }
