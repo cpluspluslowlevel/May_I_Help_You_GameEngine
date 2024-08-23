@@ -1675,25 +1675,24 @@ namespace MIHYCore{
 
         auto hash{[](const E& e){return e.m_key;}};
 
-        std::unordered_map<int, int> map;
-        std::unordered_map<int, int> map2;
-        map.insert(map2);
-        auto capacity{map.bucket_count()};
-        for(int i = 0; i < 10; ++i){
-            map.emplace(i, i * 10);
-        }
-        for(auto& e: map){
-            std::cout << e.first << ", ";
-        }
-        std::cout << std::endl;
+        // std::unordered_map<int, int> map;
+        // std::unordered_map<int, int> map2;
+        // auto capacity{map.bucket_count()};
+        // for(int i = 0; i < 10; ++i){
+        //     map.emplace(i, i * 10);
+        // }
+        // for(auto& e: map){
+        //     std::cout << e.first << ", ";
+        // }
+        // std::cout << std::endl;
         
-        for(int i = 10; i < 30; ++i){
-            map.emplace(i, i * 10);
-        }
-        for(auto& e: map){
-            std::cout << e.first << ", ";
-        }
-        std::cout << std::endl;
+        // for(int i = 10; i < 30; ++i){
+        //     map.emplace(i, i * 10);
+        // }
+        // for(auto& e: map){
+        //     std::cout << e.first << ", ";
+        // }
+        // std::cout << std::endl;
 
         //set_hash_function
         //get_hash_function
@@ -1737,7 +1736,7 @@ namespace MIHYCore{
         {
 
             H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
-            assert(h.get_size() == 3 && h.get_size() == h.m_size);
+            assert(h.get_size() == 3 && h.get_size() == h.m_node_list.size);
 
         }
 
