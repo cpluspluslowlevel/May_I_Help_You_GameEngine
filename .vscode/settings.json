@@ -8,7 +8,8 @@
         "initializer_list": "cpp",
         "xhash": "cpp",
         "xutility": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "xlocale": "cpp"
     },
 
     "cmake.sourceDirectory": "${workspaceFolder}/Project",

@@ -2108,8 +2108,8 @@ namespace MIHYCore{
         template<typename Type>
         struct MIHYHASHMAP_BUCKET{
 
-            MIHYHASHMAP_LIST_NODE<Type>* head{nullptr};
-            MIHYHASHMAP_LIST_NODE<Type>* tail{nullptr};
+            MIHYHASHMAP_LIST_NODE<Type>* begin{nullptr};            //[begin, end)
+            MIHYHASHMAP_LIST_NODE<Type>* end{nullptr};
 
         };
 
@@ -2211,7 +2211,7 @@ namespace MIHYCore{
             MIHYHASHMAP_BUCKET_TABLE<Type>  m_bucket_table;
             LIST                            m_node_list;
 
-            Float64 m_rehash_threshold;
+            Float32 m_rehash_threshold;
 
 
         public:
@@ -2376,19 +2376,20 @@ namespace MIHYCore{
 
             }
 
-            Value& find(const Type& value){
-
-                UInt64 index{hash(value, m_bucket_table.size)};
+            /// @brief          원소를 찾습니다.
+            /// @param value    찾을 원소의 값
+            /// @param result   찾은 원소의 값. 찾지 못하면 변경되지 않습니다.
+            /// @return         원소를 찾았으면 true, 아니면 false
+            bool find(const Type& value, Type* out_result){
                 
-                auto node{m_bucket_table.table[index].head};
-                while(node != nullptr){
-                    if(node->value == value){
-                        return node->value;
-                    }
-                    node = node->next;
+                auto find{find_insertion_position(value, m_bucket_table.table, m_bucket_table.size)};
+
+                if(find.is_duplicated){
+                    *out_result = find.node->value;
+                    return true;
                 }
 
-                return node->value;         //nullptr을 참조하니 예외가 발생합니다.
+                return false;
 
             }
 
@@ -2403,28 +2404,17 @@ namespace MIHYCore{
             /// @brief          모든 원소를 삭제합니다.
             void clear(){
 
+                //버킷을 비웁니다. 노드는 리스트로 구성되어 있으니 리스트를 지울 때 지웁니다.
                 for(UInt64 i = 0; i < m_bucket_table.size; ++i){
-                    
-                    NODE*   delete_node{nullptr};
-                    auto    node{m_bucket_table.table[i].head};
-                    while(node != nullptr){
-                        
-                        delete_node = node;
-                        node = node->next;
-
-                        delete delete_node;
-
-                    }
-
-                    m_bucket_table.table[i].head = nullptr;
-
+                    m_bucket_table.table[i].begin = m_bucket_table.table[i].end = &m_node_list.empty_node;
                 }
 
+                //리스트를 지웁니다.
                 auto loop_node{m_node_list.empty_node.next};
                 while(loop_node != &m_node_list.empty_node){
-                    auto temp{loop_node};
+                    auto delete_node{loop_node};
                     loop_node = loop_node->next;
-                    delete temp;
+                    delete delete_node;
                 }
                 m_node_list.empty_node.next = m_node_list.empty_node.prev = &m_node_list.empty_node;
                 m_node_list.size = 0;
@@ -2447,7 +2437,7 @@ namespace MIHYCore{
 
                 auto new_bucket_table{new BUCKET[new_bucket_table_size]};
                 for(UInt64 i = 0; i < new_bucket_table_size; ++i){
-                    new_bucket_table[i].head = new_bucket_table[i].tail = &m_node_list.empty_node;
+                    new_bucket_table[i].begin = new_bucket_table[i].end = &m_node_list.empty_node;
                 }
                 rehash(m_bucket_table.table, m_bucket_table.size, new_bucket_table, new_bucket_table_size);
 
@@ -2516,7 +2506,7 @@ namespace MIHYCore{
             /// @param rehash_threshold 재해싱 임계값
             /// @return                 원소의 개수만큼 저장할 수 있는 버킷 테이블의 크기
             UInt64 calculate_bucket_table_size(UInt64 element_number, Float32 rehash_threshold){
-                return element_number / m_rehash_threshold;
+                return (UInt64)(element_number / m_rehash_threshold);
             }
 
             /// @brief              재해싱을 시도합니다. 재히싱을 할 필요가 있을 때만 재행싱됩니다.
@@ -2529,22 +2519,19 @@ namespace MIHYCore{
                 UInt64  bucket_index{hash(lvalue, bucket_table_size)};
                 BUCKET& bucket{bucket_table[bucket_index]};
 
-                auto loop_node{bucket.head};
-                while(true){
+                auto loop_node{bucket.begin};
+                while(loop_node != bucket.end){
 
                     //중복된 원소가 있는 경우 중복된 원소를 반환합니다.
                     if(loop_node->value == lvalue){
                         return {true, loop_node};
                     }
 
-                    //마지막 원소인 경우일 경우 중복된 원소가 없다고 반환합니다.
-                    if(loop_node == bucket.tail){
-                        return {false, bucket.tail->next};
-                    }
-
                     loop_node = loop_node->next;
 
                 }
+
+                return {false, bucket.end};
 
             }
 
@@ -2563,7 +2550,7 @@ namespace MIHYCore{
 
                 auto insertion_position{find_insertion_position(rvalue, bucket_table, bucket_table_size)};
                 if(insertion_position.is_duplicated){
-                    insertion_position.node->value = rvalue;
+                    insertion_position.node->value = std::move(rvalue);
                 }else{
                     insert_node(new NODE{std::move(rvalue), nullptr, nullptr}, insertion_position, bucket_table, bucket_table_size);
                 }
@@ -2588,14 +2575,15 @@ namespace MIHYCore{
 
                 //버킷이 비어있는 경우 리스트 맨 뒤에 추가합니다.
                 //버킷이 비어있지 않으면 삽입 위치의 왼쪽에 삽입니다.
-                if(bucket.head == &m_node_list.empty_node){
+                if(bucket.begin == &m_node_list.empty_node){
 
                     node->prev = m_node_list.empty_node.prev;
                     node->next = &m_node_list.empty_node;
 
                     m_node_list.empty_node.prev->next = node;
 
-                    bucket.head = bucket.tail = node;
+                    bucket.begin = node;
+                    bucket.end   = node->next;
 
                 }else{
 
@@ -2606,12 +2594,12 @@ namespace MIHYCore{
                     insertion_position.node->prev       = node;
 
                     //head나 tail이 변경되어야 하는지 검사합니다.
-                    if(node->next == bucket.head){
-                        bucket.head = node;
+                    if(node->next == bucket.begin){
+                        bucket.begin = node;
                     }
 
-                    if(node->prev == bucket.tail){
-                        bucket.tail = node;
+                    if(node->prev == bucket.end){
+                        bucket.end = node;
                     }
 
                 }
@@ -2632,8 +2620,8 @@ namespace MIHYCore{
 
                     for(UInt64 i = 0; i < old_table_size; ++i){
 
-                        auto loop_node{old_table[i].head};
-                        while(loop_node != nullptr){
+                        auto loop_node{old_table[i].begin};
+                        while(loop_node != old_table[i].end){
 
                             auto rehash_node{loop_node};
                             loop_node = loop_node->next;
@@ -2642,7 +2630,7 @@ namespace MIHYCore{
 
                         }
 
-                        old_table[i].head = nullptr;
+                        old_table[i].begin = old_table[i].end = &m_node_list.empty_node;
 
                     }
 
@@ -2653,8 +2641,8 @@ namespace MIHYCore{
                     NODE* rehash_head{nullptr};
                     for(UInt64 i = 0; i < old_table_size; ++i){
 
-                        auto loop_node{old_table[i].head};
-                        while(loop_node != nullptr){
+                        auto loop_node{old_table[i].begin};
+                        while(loop_node != old_table[i].end){
 
                             auto rehash_node{loop_node};
                             loop_node = loop_node->next;
@@ -2664,7 +2652,7 @@ namespace MIHYCore{
 
                         }
 
-                        old_table[i].head = old_table[i].tail = &m_node_list.empty_node;
+                        old_table[i].begin = old_table[i].end = &m_node_list.empty_node;
 
                     }
 

@@ -1675,24 +1675,16 @@ namespace MIHYCore{
 
         auto hash{[](const E& e){return e.m_key;}};
 
-        // std::unordered_map<int, int> map;
-        // std::unordered_map<int, int> map2;
-        // auto capacity{map.bucket_count()};
-        // for(int i = 0; i < 10; ++i){
-        //     map.emplace(i, i * 10);
-        // }
-        // for(auto& e: map){
-        //     std::cout << e.first << ", ";
-        // }
-        // std::cout << std::endl;
-        
-        // for(int i = 10; i < 30; ++i){
-        //     map.emplace(i, i * 10);
-        // }
-        // for(auto& e: map){
-        //     std::cout << e.first << ", ";
-        // }
-        // std::cout << std::endl;
+        #define CHECK_ELEMENT(h, key, value)    \
+        {                                       \
+            E e;                                \
+            if(h.find({key, value}, &e)){       \
+                assert(e.m_key == key);         \
+                assert(e.m_value == value);     \
+            }else{                              \
+                assert(false);                  \
+            }                                   \
+        }
 
         //set_hash_function
         //get_hash_function
@@ -1710,17 +1702,17 @@ namespace MIHYCore{
             //set_hash_function호출 후 재해싱 되는지 확인합니다.
             H h2{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
             h2.reserve_bucket_table(20);
-            assert(h2.m_bucket_table.table[1].head->value.m_key == 1 && h2.m_bucket_table.table[1].head->value.m_value == 10);
-            assert(h2.m_bucket_table.table[2].head->value.m_key == 2 && h2.m_bucket_table.table[2].head->value.m_value == 20);
-            assert(h2.m_bucket_table.table[3].head->value.m_key == 3 && h2.m_bucket_table.table[3].head->value.m_value == 30);
+            CHECK_ELEMENT(h2, 1, 10);
+            CHECK_ELEMENT(h2, 2, 20);
+            CHECK_ELEMENT(h2, 3, 30);
 
             h2.set_hash_function(hash2);
-            assert(h2.m_bucket_table.table[1].head == nullptr);
-            assert(h2.m_bucket_table.table[2].head == nullptr);
-            assert(h2.m_bucket_table.table[3].head == nullptr);
-            assert(h2.m_bucket_table.table[5].head->value.m_key == 1  && h2.m_bucket_table.table[5].head->value.m_value == 10);
-            assert(h2.m_bucket_table.table[10].head->value.m_key == 2 && h2.m_bucket_table.table[10].head->value.m_value == 20);
-            assert(h2.m_bucket_table.table[15].head->value.m_key == 3 && h2.m_bucket_table.table[15].head->value.m_value == 30);
+            assert(h2.m_bucket_table.table[1].begin == &h2.m_node_list.empty_node);
+            assert(h2.m_bucket_table.table[2].begin == &h2.m_node_list.empty_node);
+            assert(h2.m_bucket_table.table[3].begin == &h2.m_node_list.empty_node);
+            assert(h2.m_bucket_table.table[5].begin->value.m_key == 1  && h2.m_bucket_table.table[5].begin->value.m_value == 10);
+            assert(h2.m_bucket_table.table[10].begin->value.m_key == 2 && h2.m_bucket_table.table[10].begin->value.m_value == 20);
+            assert(h2.m_bucket_table.table[15].begin->value.m_key == 3 && h2.m_bucket_table.table[15].begin->value.m_value == 30);
 
         }
 
@@ -1751,7 +1743,7 @@ namespace MIHYCore{
 
 
             //set_rehash_threshold을 호출하면 재해싱이 일어나도록 유도합니다.
-            h.set_rehash_threshold(0.8);
+            h.set_rehash_threshold(0.8f);
             h.reserve_bucket_table(10);
             UInt64 key = 0;
             for(UInt64 i = 0; i < h.get_bucket_table_size() / 2; ++i){
@@ -1761,12 +1753,11 @@ namespace MIHYCore{
 
             //재해싱 확인
             UInt64 bucket_table_size_before{h.get_bucket_table_size()};
-            h.set_rehash_threshold(0.3);
+            h.set_rehash_threshold(0.3f);
             assert(h.get_bucket_table_size() > bucket_table_size_before);
             
             for(UInt64 i = 0; i < key; ++i){
-                assert(h.find(E{i, i * 10}).m_key == i);
-                assert(h.find(E{i, i * 10}).m_value == i * 10ULL);
+                CHECK_ELEMENT(h, i, i * 10);
             }
 
         }
@@ -1780,7 +1771,7 @@ namespace MIHYCore{
             h.clear();
             assert(h.get_size() == 0);
             for(UInt64 i = 0; i < h.get_bucket_table_size(); ++i){
-                assert(h.m_bucket_table.table[i].head == nullptr);
+                assert(h.m_bucket_table.table[i].begin == nullptr);
             }
 
         }
@@ -1788,11 +1779,16 @@ namespace MIHYCore{
         //reserve_bucket_table
         {
 
-            H h{hash};
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
 
             UInt64 bucket_table_size_before{h.get_bucket_table_size()};
             h.reserve_bucket_table(bucket_table_size_before * 2);
-
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
             assert(h.get_bucket_table_size() >= bucket_table_size_before * 2);
 
         }
@@ -1825,7 +1821,7 @@ namespace MIHYCore{
 
             h.insert(E{1, 10});                //생성자 호출 후 사용해도 문제가 없는지
             assert(h.get_size() == 1);
-            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
+            CHECK_ELEMENT(h, 1, 10);
 
         }
 
@@ -1834,16 +1830,16 @@ namespace MIHYCore{
 
             H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
             assert(h.get_size() == 3);
-            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
-            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
-            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
 
             h.insert(E{4, 40});                //생성자 호출 후 사용해도 문제가 없는지
             assert(h.get_size() == 4);
-            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
-            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
-            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
-            assert(h.find(E{4, 40}).m_key == 4 && h.find(E{4, 40}).m_value == 40);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
 
         }
 
