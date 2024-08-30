@@ -1771,7 +1771,7 @@ namespace MIHYCore{
             h.clear();
             assert(h.get_size() == 0);
             for(UInt64 i = 0; i < h.get_bucket_table_size(); ++i){
-                assert(h.m_bucket_table.table[i].begin == nullptr);
+                assert(h.m_bucket_table.table[i].begin == &h.m_node_list.empty_node);
             }
 
         }

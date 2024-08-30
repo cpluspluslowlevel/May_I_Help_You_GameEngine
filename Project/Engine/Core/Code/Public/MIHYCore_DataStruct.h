@@ -2222,6 +2222,7 @@ namespace MIHYCore{
                                                                       m_bucket_table{nullptr, 0ULL},
                                                                       m_node_list{},
                                                                       m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
+                initialize_node_list();
                 reserve_bucket_table(DEFAULT_BUCKET_TABLE_SIZE);
             }
 
@@ -2232,6 +2233,7 @@ namespace MIHYCore{
                                                                                                         m_bucket_table{nullptr, 0ULL},
                                                                                                         m_node_list{},
                                                                                                         m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
+                initialize_node_list();
                 reserve_bucket_table(list.size());
                 for(auto& element : list){
                     insert_uncheck_rehash_threshold(std::move(element), m_bucket_table.table, m_bucket_table.size);
@@ -2245,6 +2247,7 @@ namespace MIHYCore{
                                                      m_bucket_table{0, nullptr},
                                                      m_node_list{},
                                                      m_rehash_threshold{lvalue.m_rehash_threshold}{
+                initialize_node_list();
                 reserve_bucket_table(lvalue.m_size);
                 for(auto& element : lvalue){
                     insert_uncheck_rehash_threshold(element);
@@ -2274,7 +2277,8 @@ namespace MIHYCore{
                                                                                                               m_bucket_table{0, nullptr},
                                                                                                               m_node_list{},
                                                                                                               m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
-                try_expanding_bucket_table(mihyhashmap_unittest(begin, end));
+                initialize_node_list();
+                reserve_bucket_table(mihyhashmap_unittest(begin, end));
                 for(auto iter = begin; iter != end; ++iter){
                     insert_uncheck_rehash_threshold(*iter);
                 }
@@ -2488,6 +2492,12 @@ namespace MIHYCore{
 
         private:
 
+            /// @brief         노드 리스트를 초기화합니다.
+            void initialize_node_list(){
+                m_node_list.empty_node.prev = m_node_list.empty_node.next = &m_node_list.empty_node;
+                m_node_list.size = 0;
+            }
+
             void release_bucket_table(){
                 delete[] m_bucket_table.table;
                 m_bucket_table.table    = nullptr;
@@ -2520,7 +2530,7 @@ namespace MIHYCore{
                 BUCKET& bucket{bucket_table[bucket_index]};
 
                 auto loop_node{bucket.begin};
-                while(loop_node != bucket.end){
+                while(loop_node != bucket.end->next){
 
                     //중복된 원소가 있는 경우 중복된 원소를 반환합니다.
                     if(loop_node->value == lvalue){
@@ -2542,6 +2552,7 @@ namespace MIHYCore{
                     insertion_position.node->value = lvalue;
                 }else{
                     insert_node(new NODE{std::move(lvalue), nullptr, nullptr}, insertion_position, bucket_table, bucket_table_size);
+                    ++m_node_list.size;
                 }
 
             }
@@ -2553,6 +2564,7 @@ namespace MIHYCore{
                     insertion_position.node->value = std::move(rvalue);
                 }else{
                     insert_node(new NODE{std::move(rvalue), nullptr, nullptr}, insertion_position, bucket_table, bucket_table_size);
+                    ++m_node_list.size;
                 }
 
             }
@@ -2565,13 +2577,15 @@ namespace MIHYCore{
                     delete node;
                 }else{
                     insert_node(node, insertion_position, bucket_table, bucket_table_size);
+                    ++m_node_list.size;
                 }
                 
             }
 
             void insert_node(NODE* node, FIND_INSERTION_POSITION_RESULT& insertion_position, BUCKET* bucket_table, UInt64 bucket_table_size){
 
-                auto& bucket{bucket_table[hash(node->value, bucket_table_size)]};
+                UInt64 bucket_table_index{hash(node->value, bucket_table_size)};
+                auto& bucket{bucket_table[bucket_table_index]};
 
                 //버킷이 비어있는 경우 리스트 맨 뒤에 추가합니다.
                 //버킷이 비어있지 않으면 삽입 위치의 왼쪽에 삽입니다.
@@ -2580,10 +2594,11 @@ namespace MIHYCore{
                     node->prev = m_node_list.empty_node.prev;
                     node->next = &m_node_list.empty_node;
 
-                    m_node_list.empty_node.prev->next = node;
+                    m_node_list.empty_node.prev->next   = node;
+                    m_node_list.empty_node.prev         = node;
 
                     bucket.begin = node;
-                    bucket.end   = node->next;
+                    bucket.end   = node;
 
                 }else{
 
@@ -2594,11 +2609,11 @@ namespace MIHYCore{
                     insertion_position.node->prev       = node;
 
                     //head나 tail이 변경되어야 하는지 검사합니다.
-                    if(node->next == bucket.begin){
+                    if(insertion_position.node == bucket.begin){
                         bucket.begin = node;
                     }
 
-                    if(node->prev == bucket.end){
+                    if(insertion_position.node == bucket.end){
                         bucket.end = node;
                     }
 
@@ -2613,6 +2628,10 @@ namespace MIHYCore{
             /// @param new_table_size   새로운 테이블의 크기
             void rehash(BUCKET* old_table, UInt64 old_table_size, BUCKET* new_table, UInt64 new_table_size){
 
+                //재해쉬 되면서 노드가 재배치 되는데 이때 노드 리스트에 영향을 주게 됩니다.
+                //기존 테이블에 맞게 구성된 리스트를 버리고 새로운 리스트를 만들어야 합니다.
+                initialize_node_list();
+
                 //재해쉬 할 테이블과 기존 테이블이 같을때와 다를때를 구분합니다.
                 if(old_table != new_table){
 
@@ -2620,8 +2639,10 @@ namespace MIHYCore{
 
                     for(UInt64 i = 0; i < old_table_size; ++i){
 
-                        auto loop_node{old_table[i].begin};
-                        while(loop_node != old_table[i].end){
+                        BUCKET& bucket{old_table[i]};
+
+                        auto loop_node{bucket.begin};
+                        while(loop_node != bucket.end->next){
 
                             auto rehash_node{loop_node};
                             loop_node = loop_node->next;
@@ -2630,7 +2651,7 @@ namespace MIHYCore{
 
                         }
 
-                        old_table[i].begin = old_table[i].end = &m_node_list.empty_node;
+                        bucket.begin = bucket.end = &m_node_list.empty_node;
 
                     }
 
@@ -2642,7 +2663,7 @@ namespace MIHYCore{
                     for(UInt64 i = 0; i < old_table_size; ++i){
 
                         auto loop_node{old_table[i].begin};
-                        while(loop_node != old_table[i].end){
+                        while(loop_node != old_table[i].end->next){
 
                             auto rehash_node{loop_node};
                             loop_node = loop_node->next;
