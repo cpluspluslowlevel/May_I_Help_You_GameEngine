@@ -2405,9 +2405,9 @@ namespace MIHYCore{
             /// @brief                  빈 해쉬맵 생성자입니다.
             /// @param hash_function    해쉬 함수
             MIHYHashTable(std::function<Hash_Function> hash_function) : m_hash_function{hash_function},
-                                                                      m_bucket_table{nullptr, 0ULL},
-                                                                      m_node_list{new NODE{}, 0ULL},
-                                                                      m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
+                                                                        m_bucket_table{nullptr, 0ULL},
+                                                                        m_node_list{new NODE{}, 0ULL},
+                                                                        m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
                 initialize_node_list();
                 reserve_bucket_table(DEFAULT_BUCKET_TABLE_SIZE);
             }
