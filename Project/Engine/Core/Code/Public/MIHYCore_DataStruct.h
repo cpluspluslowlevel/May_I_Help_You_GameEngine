@@ -175,8 +175,8 @@ namespace MIHYCore{
                     reserve_capacity(m_size + list.size());
                 }
 
-                for(auto&& e: list){
-                    m_memory[m_size++] = std::move(e);
+                for(auto& e: list){
+                    m_memory[m_size++] = e;
                 }
 
             }
@@ -317,8 +317,8 @@ namespace MIHYCore{
                 }
 
                 UInt64 push_index{index};
-                for(auto e: list){
-                    m_memory[push_index++] = std::move(e);
+                for(auto& e: list){
+                    m_memory[push_index++] = e;
                 }
 
                 m_size += list.size();
@@ -1287,7 +1287,7 @@ namespace MIHYCore{
                 auto iter_end{list.end()};
                 while(iter != iter_end){
 
-                    m_empty_node.prev = new NODE{std::move(*iter), m_empty_node.prev, &m_empty_node};
+                    m_empty_node.prev = new NODE{*iter, m_empty_node.prev, &m_empty_node};
                     m_empty_node.prev->prev->next = m_empty_node.prev;
 
                     ++iter;
@@ -1430,7 +1430,7 @@ namespace MIHYCore{
 
                     while(lvalue_copy_loop != lvalue.get_empty_node()){
 
-                        m_empty_node.prev               = new MIHYLIST_NODE{lvalue_copy_loop->value, m_empty_node.prev, &m_empty_node};
+                        m_empty_node.prev               = new NODE{lvalue_copy_loop->value, m_empty_node.prev, &m_empty_node};
                         m_empty_node.prev->prev->next   = m_empty_node.prev;
 
                         lvalue_copy_loop = lvalue_copy_loop->next;
@@ -1786,14 +1786,14 @@ namespace MIHYCore{
 
             /// @brief      컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
             /// @return     첫 요소를 가리키는 반복자.
-            Iterator begin(){
+            Iterator begin() const{
                 return Iterator{m_empty_node.next};
             }
 
             /// @brief      반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
             /// @return     반복자가 범위 밖을 나갔는지를 나타내는 반복자
-            Iterator end(){
-                return Iterator{&m_empty_node};
+            Iterator end() const{
+                return Iterator{m_empty_node.prev->next};
             }
 
             /// @brief      컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
@@ -1810,14 +1810,14 @@ namespace MIHYCore{
 
             /// @brief      역순으로 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
             /// @return     첫 요소를 가리키는 반복자.
-            Reverse_Iterator rbegin(){
+            Reverse_Iterator rbegin() const{
                 return Reverse_Iterator{m_empty_node.prev};
             }
 
             /// @brief      반복자가 범위 밖을 넘어갔는지 검사하는 반복자를 반환합니다.
             /// @return     반복자가 범위 밖을 나갔는지를 나타내는 반복자
-            Reverse_Iterator rend(){
-                return Reverse_Iterator{&m_empty_node};
+            Reverse_Iterator rend() const{
+                return Reverse_Iterator{m_empty_node.prev->next};
             }
 
             /// @brief      역순으로 컨테이너의 첫번째 요소를 가리키는 반복자를 반환합니다.
@@ -2096,7 +2096,7 @@ namespace MIHYCore{
 
             using NODE = MIHYHASHMAP_LIST_NODE<Type>;
 
-            NODE                        empty_node;
+            NODE*                       empty_node;
 
             UInt64                      size;
 
@@ -2374,7 +2374,7 @@ namespace MIHYCore{
             /// @param hash_function    해쉬 함수
             MIHYHashMap(std::function<Hash_Function> hash_function) : m_hash_function{hash_function},
                                                                       m_bucket_table{nullptr, 0ULL},
-                                                                      m_node_list{},
+                                                                      m_node_list{new NODE{}, 0ULL},
                                                                       m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
                 initialize_node_list();
                 reserve_bucket_table(DEFAULT_BUCKET_TABLE_SIZE);
@@ -2385,12 +2385,12 @@ namespace MIHYCore{
             /// @param list             초기화 리스트
             MIHYHashMap(std::function<Hash_Function> hash_function, std::initializer_list<Type> list) : m_hash_function{hash_function},
                                                                                                         m_bucket_table{nullptr, 0ULL},
-                                                                                                        m_node_list{},
+                                                                                                        m_node_list{new NODE{}, 0ULL},
                                                                                                         m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
                 initialize_node_list();
                 reserve_bucket_table(list.size());
                 for(auto& element : list){
-                    insert_uncheck_rehash_threshold(std::move(element), m_bucket_table.table, m_bucket_table.size);
+                    insert_uncheck_rehash_threshold(element, m_bucket_table.table, m_bucket_table.size);
                 }
             }
 
@@ -2398,27 +2398,35 @@ namespace MIHYCore{
             /// @param hash_function    해쉬 함수
             /// @param lvalue           복사 대상
             MIHYHashMap(const MIHYHashMap& lvalue) : m_hash_function{lvalue.m_hash_function},
-                                                     m_bucket_table{0, nullptr},
-                                                     m_node_list{},
+                                                     m_bucket_table{nullptr, 0ULL},
+                                                     m_node_list{new NODE{}, 0ULL},
                                                      m_rehash_threshold{lvalue.m_rehash_threshold}{
                 initialize_node_list();
-                reserve_bucket_table(lvalue.m_size);
-                for(auto& element : lvalue){
-                    insert_uncheck_rehash_threshold(element);
+                reserve_bucket_table(lvalue.m_bucket_table.size);
+                for(const auto& element : lvalue){
+                    insert_uncheck_rehash_threshold(element, m_bucket_table.table, m_bucket_table.size);
                 }
             }
 
             /// @brief                  이동 생성자입니다.
             /// @param hash_function    해쉬 함수
             /// @param rvalue           이동 대상
-            MIHYHashMap(MIHYHashMap&& rvalue) : m_hash_function{std::move(rvalue.m_hash_function)},
+            MIHYHashMap(MIHYHashMap&& rvalue) : m_hash_function{rvalue.m_hash_function},
                                                 m_bucket_table{std::move(rvalue.m_bucket_table)},
-                                                m_node_list{std::move(rvalue.m_node_list)},
+                                                m_node_list{new NODE{}, 0ULL},
                                                 m_rehash_threshold{rvalue.m_rehash_threshold}{
-                rvalue.m_hash_function      = nullptr;
+
+                std::swap(m_node_list.empty_node, rvalue.m_node_list.empty_node);
+                m_node_list.size = rvalue.m_node_list.size;
+
                 rvalue.m_bucket_table.table = nullptr;
                 rvalue.m_bucket_table.size  = 0;
+
+                rvalue.m_node_list.empty_node->prev = rvalue.m_node_list.empty_node->next = rvalue.m_node_list.empty_node;
+                rvalue.m_node_list.size     = 0;
+
                 rvalue.m_rehash_threshold   = DEFAULT_REHASH_THRESHOLD;
+
             }
 
             /// @brief                  반복자를 받는 생성자입니다.
@@ -2428,14 +2436,35 @@ namespace MIHYCore{
             /// @param end              끝 반복자
             template<typename Copy_Iterator>
             MIHYHashMap(std::function<Hash_Function> hash_function, Copy_Iterator begin, Copy_Iterator end) : m_hash_function{hash_function},
-                                                                                                              m_bucket_table{0, nullptr},
-                                                                                                              m_node_list{},
+                                                                                                              m_bucket_table{nullptr, 0ULL},
+                                                                                                              m_node_list{new NODE{}, 0ULL},
                                                                                                               m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
                 initialize_node_list();
-                reserve_bucket_table(mihyhashmap_unittest(begin, end));
+                reserve_bucket_table(mihyiterator_distance(begin, end));
                 for(auto iter = begin; iter != end; ++iter){
-                    insert_uncheck_rehash_threshold(*iter);
+                    insert_uncheck_rehash_threshold(*iter, m_bucket_table.table, m_bucket_table.size);
                 }
+            }
+
+            ~MIHYHashMap(){
+                clear();
+                release_bucket_table();
+                delete m_node_list.empty_node;
+            }
+
+            /// @brief          초기화 리스트를 입력으로 받는 대입 연산자입니다.
+            /// @param list     초기화 리스트
+            /// @return         스스로의 참조
+            MIHYHashMap& operator=(std::initializer_list<Type> list){
+
+                clear();
+                reserve_bucket_table(list.size());
+                for(auto& element : list){
+                    insert_uncheck_rehash_threshold(element, m_bucket_table.table, m_bucket_table.size);
+                }
+
+                return *this;
+
             }
 
             /// @brief          복사 대입 연산자입니다.
@@ -2450,7 +2479,7 @@ namespace MIHYCore{
 
                 reserve_bucket_table(lvalue.m_bucket_table.size);
                 for(auto& element : lvalue){
-                    insert_uncheck_rehash_threshold(element);
+                    insert_uncheck_rehash_threshold(element, m_bucket_table.table, m_bucket_table.size);
                 }
 
                 return *this;
@@ -2465,14 +2494,24 @@ namespace MIHYCore{
                 clear();
                 release_bucket_table();
 
-                m_hash_function         = std::move(rvalue.m_hash_function);
-                m_bucket_table.table    = rvalue.m_bucket_table.table;
-                m_bucket_table.size     = rvalue.m_bucket_table.size;
-                m_node_list             = std::move(rvalue.mnode_list);
+                //rvalue의 값을 가져옵니다.
+                m_hash_function         = rvalue.m_hash_function;
+
+                m_bucket_table          = std::move(rvalue.m_bucket_table);
+
+                std::swap(m_node_list.empty_node, rvalue.m_node_list.empty_node);
+                m_node_list.size = rvalue.m_node_list.size;
+
                 m_rehash_threshold      = rvalue.m_rehash_threshold;
 
+
+                //rvalue의 값을 초기화합니다.
                 rvalue.m_bucket_table.table     = nullptr;
                 rvalue.m_bucket_table.size      = 0;
+
+                rvalue.m_node_list.empty_node->prev = rvalue.m_node_list.empty_node->next = rvalue.m_node_list.empty_node;
+                rvalue.m_node_list.size         = 0;
+
                 rvalue.m_rehash_threshold       = DEFAULT_REHASH_THRESHOLD;
 
                 return *this;
@@ -2483,7 +2522,7 @@ namespace MIHYCore{
             /// @brief          원소를 추가합니다.
             /// @param lvalue   추가 대상
             void insert(const Type& lvalue){
-                insert_uncheck_rehash_threshold(lvalue);
+                insert_uncheck_rehash_threshold(lvalue, m_bucket_table.table, m_bucket_table.size);
                 try_expanding_bucket_table();
             }
 
@@ -2501,7 +2540,7 @@ namespace MIHYCore{
                 try_expanding_bucket_table(list.size());
 
                 for(auto& element: list){
-                    insert_uncheck_rehash_threshold(std::move(element));
+                    insert_uncheck_rehash_threshold(element, m_bucket_table.table, m_bucket_table.size);
                 }
 
             }
@@ -2513,7 +2552,7 @@ namespace MIHYCore{
                 try_expanding_bucket_table(lvalue.get_size());
 
                 for(auto& element : lvalue){
-                    insert_uncheck_rehash_threshold(element);
+                    insert_uncheck_rehash_threshold(element, m_bucket_table.table, m_bucket_table.size);
                 }
 
             }
@@ -2525,12 +2564,46 @@ namespace MIHYCore{
             template<typename Copy_Iterator>
             void insert(Copy_Iterator begin, Copy_Iterator end){
 
-                try_expanding_bucket_table(mihyhashmap_unittest(begin, end));
+                try_expanding_bucket_table(mihyiterator_distance(begin, end));
 
                 while(begin != end){
-                    insert_uncheck_rehash_threshold(*begin);
+                    insert_uncheck_rehash_threshold(*begin, m_bucket_table.table, m_bucket_table.size);
                     ++begin;
                 }
+
+            }
+
+            bool erase(const Type& value){
+
+                auto find{find_insertion_position(value, m_bucket_table.table, m_bucket_table.size)};
+                if(find.is_duplicated){
+
+                    UInt64  bucket_index{hash(value, m_bucket_table.size)};
+                    auto&   bucket{m_bucket_table.table[bucket_index]};
+
+                    //삭제될 대상이 있다는 것은 버킷이 비어있지 않다는 뜻입니다.
+                    //head == tail일 경우와 아닌 경우를 나누어 처리합니다.
+                    //head == tail일 경우 하나의 노드만 있다는 뜻이기에 비어있는 버킷으로 만듭니다.
+                    //그 외에는 삭제되는 노드가 head인지 tail인지에 따라 head나 tail을 갱신합니다.
+                    if(bucket.begin == bucket.end){
+                        bucket.begin = bucket.end = m_node_list.empty_node;
+                    }else{
+
+                        if(bucket.begin == find.node){
+                            bucket.begin = find.node->next;
+                        }
+
+                        if(bucket.end == find.node){
+                            bucket.end = find.node->prev;
+                        }
+
+                    }
+
+                    --m_node_list.size;
+
+                }
+
+                return find.is_duplicated;
 
             }
 
@@ -2551,6 +2624,10 @@ namespace MIHYCore{
 
             }
 
+            bool exists(const Type& value){
+                return find_insertion_position(value, m_bucket_table.table, m_bucket_table.size).is_duplicated;
+            }
+
             /// @brief                      해쉬 값을 구합니다.
             /// @param value                해쉬 값을 계산할 값
             /// @param bucket_table_size    해쉬 테이블의 크기
@@ -2564,18 +2641,17 @@ namespace MIHYCore{
 
                 //버킷을 비웁니다. 노드는 리스트로 구성되어 있으니 리스트를 지울 때 지웁니다.
                 for(UInt64 i = 0; i < m_bucket_table.size; ++i){
-                    m_bucket_table.table[i].begin = m_bucket_table.table[i].end = &m_node_list.empty_node;
+                    m_bucket_table.table[i].begin = m_bucket_table.table[i].end = m_node_list.empty_node;
                 }
 
                 //리스트를 지웁니다.
-                auto loop_node{m_node_list.empty_node.next};
-                while(loop_node != &m_node_list.empty_node){
+                auto loop_node{m_node_list.empty_node->next};
+                while(loop_node != m_node_list.empty_node){
                     auto delete_node{loop_node};
                     loop_node = loop_node->next;
                     delete delete_node;
                 }
-                m_node_list.empty_node.next = m_node_list.empty_node.prev = &m_node_list.empty_node;
-                m_node_list.size = 0;
+                initialize_node_list();
 
             }
 
@@ -2595,7 +2671,7 @@ namespace MIHYCore{
 
                 auto new_bucket_table{new BUCKET[new_bucket_table_size]};
                 for(UInt64 i = 0; i < new_bucket_table_size; ++i){
-                    new_bucket_table[i].begin = new_bucket_table[i].end = &m_node_list.empty_node;
+                    new_bucket_table[i].begin = new_bucket_table[i].end = m_node_list.empty_node;
                 }
                 rehash(m_bucket_table.table, m_bucket_table.size, new_bucket_table, new_bucket_table_size);
 
@@ -2609,36 +2685,36 @@ namespace MIHYCore{
 
             //Iterator
 
-            Iterator begin(){
-                return Iterator{m_node_list.empty_node.next};
+            Iterator begin() const{
+                return Iterator{m_node_list.empty_node->next};
             }
 
-            Iterator end(){
-                return Iterator{&m_node_list.empty_node};
+            Iterator end() const{
+                return Iterator{m_node_list.empty_node->prev->next};
             }
 
             Const_Iterator cbegin() const{
-                return Const_Iterator{m_node_list.empty_node.next};
+                return Const_Iterator{m_node_list.empty_node->next};
             }
 
             Const_Iterator cend() const{
-                return Const_Iterator{m_node_list.empty_node.prev->next};
+                return Const_Iterator{m_node_list.empty_node->prev->next};
             }
 
-            Reverse_Iterator rbegin(){
-                return Reverse_Iterator{m_node_list.empty_node.prev};
+            Reverse_Iterator rbegin() const{
+                return Reverse_Iterator{m_node_list.empty_node->prev};
             }
 
-            Reverse_Iterator rend(){
-                return Reverse_Iterator{&m_node_list.empty_node};
+            Reverse_Iterator rend() const{
+                return Reverse_Iterator{m_node_list.empty_node->prev->next};
             }
 
             Const_Reverse_Iterator crbegin() const{
-                return Const_Reverse_Iterator{m_node_list.empty_node.prev};
+                return Const_Reverse_Iterator{m_node_list.empty_node->prev};
             }
 
             Const_Reverse_Iterator crend() const{
-                return Const_Reverse_Iterator{m_node_list.empty_node.prev->next};
+                return Const_Reverse_Iterator{m_node_list.empty_node->prev->next};
             }
 
 
@@ -2684,7 +2760,7 @@ namespace MIHYCore{
 
             /// @brief         노드 리스트를 초기화합니다.
             void initialize_node_list(){
-                m_node_list.empty_node.prev = m_node_list.empty_node.next = &m_node_list.empty_node;
+                m_node_list.empty_node->prev = m_node_list.empty_node->next = m_node_list.empty_node;
                 m_node_list.size = 0;
             }
 
@@ -2779,13 +2855,13 @@ namespace MIHYCore{
 
                 //버킷이 비어있는 경우 리스트 맨 뒤에 추가합니다.
                 //버킷이 비어있지 않으면 삽입 위치의 왼쪽에 삽입니다.
-                if(bucket.begin == &m_node_list.empty_node){
+                if(bucket.begin == m_node_list.empty_node){
 
-                    node->prev = m_node_list.empty_node.prev;
-                    node->next = &m_node_list.empty_node;
+                    node->prev = m_node_list.empty_node->prev;
+                    node->next = m_node_list.empty_node;
 
-                    m_node_list.empty_node.prev->next   = node;
-                    m_node_list.empty_node.prev         = node;
+                    m_node_list.empty_node->prev->next   = node;
+                    m_node_list.empty_node->prev         = node;
 
                     bucket.begin = node;
                     bucket.end   = node;
@@ -2820,8 +2896,8 @@ namespace MIHYCore{
 
                 // //재해쉬 되면서 노드가 재배치 되는데 이때 노드 리스트에 영향을 주게 됩니다.
                 // //기존 테이블에 맞게 구성된 리스트를 버리고 새로운 리스트를 만들어야 합니다.
-                auto old_list_begin{m_node_list.empty_node.next};
-                auto old_list_end{m_node_list.empty_node.prev->next};
+                auto old_list_begin{m_node_list.empty_node->next};
+                auto old_list_end{m_node_list.empty_node->prev->next};
                 initialize_node_list();
 
                 //재해쉬 할 테이블과 기존 테이블이 같을때에는 테이블을 비웁니다.
@@ -2830,7 +2906,7 @@ namespace MIHYCore{
                     for(UInt64 i = 0; i < old_table_size; ++i){
 
                         auto& bucket{old_table[i]};
-                        bucket.begin = bucket.end = &m_node_list.empty_node;
+                        bucket.begin = bucket.end = m_node_list.empty_node;
 
                     }
 
@@ -2876,13 +2952,13 @@ namespace MIHYCore{
 
             /// @brief   역방향 반복자의 시작을 반환합니다.
             /// @return  역방향 반복자의 시작
-            Container::Reverse_Iterator begin(){
+            Container::Reverse_Iterator begin() const{
                 return m_container.rbegin();
             }
 
             /// @brief   역방향 반복자의 끝을 반환합니다.
             /// @return  역방향 반복자의 끝
-            Container::Reverse_Iterator end(){
+            Container::Reverse_Iterator end() const{
                 return m_container.rend();
             }
 

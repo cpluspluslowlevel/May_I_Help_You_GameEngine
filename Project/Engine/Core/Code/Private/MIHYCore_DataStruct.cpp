@@ -774,15 +774,16 @@ namespace MIHYCore{
         //Iterator foreach
         {
 
-            L l{E{10}, E{20}, E{30}, E{40}};
-            L temp{};
+            L           l{E{10}, E{20}, E{30}, E{40}};
+            const L&    cl{l};
+            L           temp{};
 
             for(auto& e : l){ temp.push_back(e); }
             assert(temp.get_size() == 4);
             assert(temp.get(0) == 10 && temp.get(1) == 20 && temp.get(2) == 30 && temp.get(3) == 40);
 
             temp.clear();
-            for(const auto& e : l){ temp.push_back(e); }
+            for(const auto& e : cl){ temp.push_back(e); }
             assert(temp.get_size() == 4);
             assert(temp.get(0) == 10 && temp.get(1) == 20 && temp.get(2) == 30 && temp.get(3) == 40);
 
@@ -792,7 +793,7 @@ namespace MIHYCore{
             assert(temp.get(0) == 40 && temp.get(1) == 30 && temp.get(2) == 20 && temp.get(3) == 10);
 
             temp.clear();
-            for(const auto& e : MIHYIterator_ForEach_Reverse<L>(l)){ temp.push_back(e); }
+            for(const auto& e : MIHYIterator_ForEach_Reverse<const L>(cl)){ temp.push_back(e); }
             assert(temp.get_size() == 4);
             assert(temp.get(0) == 40 && temp.get(1) == 30 && temp.get(2) == 20 && temp.get(3) == 10);
 
@@ -1707,9 +1708,9 @@ namespace MIHYCore{
             CHECK_ELEMENT(h2, 3, 30);
 
             h2.set_hash_function(hash2);
-            assert(h2.m_bucket_table.table[1].begin == &h2.m_node_list.empty_node);
-            assert(h2.m_bucket_table.table[2].begin == &h2.m_node_list.empty_node);
-            assert(h2.m_bucket_table.table[3].begin == &h2.m_node_list.empty_node);
+            assert(h2.m_bucket_table.table[1].begin == h2.m_node_list.empty_node);
+            assert(h2.m_bucket_table.table[2].begin == h2.m_node_list.empty_node);
+            assert(h2.m_bucket_table.table[3].begin == h2.m_node_list.empty_node);
             assert(h2.m_bucket_table.table[5].begin->value.m_key == 1  && h2.m_bucket_table.table[5].begin->value.m_value == 10);
             assert(h2.m_bucket_table.table[10].begin->value.m_key == 2 && h2.m_bucket_table.table[10].begin->value.m_value == 20);
             assert(h2.m_bucket_table.table[15].begin->value.m_key == 3 && h2.m_bucket_table.table[15].begin->value.m_value == 30);
@@ -1771,7 +1772,7 @@ namespace MIHYCore{
             h.clear();
             assert(h.get_size() == 0);
             for(UInt64 i = 0; i < h.get_bucket_table_size(); ++i){
-                assert(h.m_bucket_table.table[i].begin == &h.m_node_list.empty_node);
+                assert(h.m_bucket_table.table[i].begin == h.m_node_list.empty_node);
             }
 
         }
@@ -2037,6 +2038,19 @@ namespace MIHYCore{
 
         }
 
+        //Iterator foreach
+        {
+
+            H           h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            const H&    ch{h};
+
+            for(auto& e : h){ assert(h.exists(e)); }        //e는 중복되는 값이 없기 때문에 모든 e에 대해 같은 원소가 존재하면 모든 원소를 순회한 것입니다.
+            for(const auto& e : ch){ assert(h.exists(e)); }
+            for(auto& e : MIHYIterator_ForEach_Reverse<H>(h)){ assert(h.exists(e)); }
+            for(const auto& e : MIHYIterator_ForEach_Reverse<const H>(ch)){ assert(h.exists(e)); }
+
+        }
+
         //Iterator 생성자(복사 생성자)
         //Iterator 생성자(이동 생성자)
         //Iterator 생성자(반복자)
@@ -2140,53 +2154,286 @@ namespace MIHYCore{
 
         //생성자(복사 생성자)
         {
-/*
-            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+
+            H lvalue{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            H h{lvalue};
             assert(h.get_size() == 3);
-            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
-            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
-            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
 
-            H copy{h};
-            assert(copy.get_size() == 3);
-            assert(copy.find(E{1, 10}).m_key == 1 && copy.find(E{1, 10}).m_value == 10);
-            assert(copy.find(E{2, 20}).m_key == 2 && copy.find(E{2, 20}).m_value == 20);
-            assert(copy.find(E{3, 30}).m_key == 3 && copy.find(E{3, 30}).m_value == 30);
+            assert(lvalue.get_size() == 3);
+            CHECK_ELEMENT(lvalue, 1, 10);
+            CHECK_ELEMENT(lvalue, 2, 20);
+            CHECK_ELEMENT(lvalue, 3, 30);
 
-            assert(h.get_size() == 3);
-            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
-            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
-            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
+            h.insert(E{4, 40});          //생성자 호출 후 사용해도 문제가 없는지
+            assert(h.get_size() == 4);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
 
-            copy.insert(E{4, 40});          //생성자 호출 후 사용해도 문제가 없는지
-            assert(copy.get_size() == 4);
-            assert(copy.find(E{1, 10}).m_key == 1 && copy.find(E{1, 10}).m_value == 10);
-            assert(copy.find(E{2, 20}).m_key == 2 && copy.find(E{2, 20}).m_value == 20);
-            assert(copy.find(E{3, 30}).m_key == 3 && copy.find(E{3, 30}).m_value == 30);
-            assert(copy.find(E{4, 40}).m_key == 4 && copy.find(E{4, 40}).m_value == 40);
+            assert(lvalue.get_size() == 3);
+            CHECK_ELEMENT(lvalue, 1, 10);
+            CHECK_ELEMENT(lvalue, 2, 20);
+            CHECK_ELEMENT(lvalue, 3, 30);
 
-            assert(h.get_size() == 3);
-            assert(h.find(E{1, 10}).m_key == 1 && h.find(E{1, 10}).m_value == 10);
-            assert(h.find(E{2, 20}).m_key == 2 && h.find(E{2, 20}).m_value == 20);
-            assert(h.find(E{3, 30}).m_key == 3 && h.find(E{3, 30}).m_value == 30);
-*/
         }
 
         //생성자(이동 생성자)
+        {
+
+            H rvalue{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            H h{std::move(rvalue)};
+            assert(h.get_size() == 3);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+
+            assert(rvalue.get_size() == 0);
+
+            h.insert(E{4, 40});          //생성자 호출 후 사용해도 문제가 없는지
+            assert(h.get_size() == 4);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+
+            assert(rvalue.get_size() == 0);
+
+        }
+
         //생성자(반복자)
+        {
+
+            MIHYList<E> l{E{1, 10}, E{2, 20}, E{3, 30}};
+
+            H h{hash, l.begin(), l.end()};
+            assert(h.get_size() == 3);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+
+            h.insert(E{4, 40});                //생성자 호출 후 사용해도 문제가 없는지
+            assert(h.get_size() == 4);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+
+        }
 
         //operator=(초기화 리스트)
-        //operator=(복사)
-        //operator=(이동)
+        {
 
+            H h{hash};
+
+            h = {E{1, 10}, E{2, 20}};                           //빈 해시맵에 대입하는 경우
+            assert(h.get_size() == 2);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+
+            h.insert(E{3, 30});                                 //대입 후 사용해도 문제가 없는지
+            assert(h.get_size() == 3);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+
+            h = {E{1, 10}, E{2, 20}, E{3, 30}, E{4, 40}};       //이미 원소가 있는 해시맵에 대입하는 경우
+            assert(h.get_size() == 4);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+
+            h.insert(E{5, 50});                                 //대입 후 사용해도 문제가 없는지
+            assert(h.get_size() == 5);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+            CHECK_ELEMENT(h, 5, 50);
+
+        }
+
+        //operator=(복사)
+        {
+
+            auto hash2{[](const E& e){return e.m_key * 5;}};
+
+            H lvalue0{hash2, {E{1, 10}, E{2, 20}}};
+            H lvalue1{hash2, {E{1, 10}, E{2, 20}, E{3, 30}, E{4, 40}}};
+            H h{hash};
+
+            h = lvalue0;                    //빈 해시맵에 대입하는 경우
+            assert(h.get_size() == 2);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+
+            assert(lvalue0.get_size() == 2);
+            CHECK_ELEMENT(lvalue0, 1, 10);
+            CHECK_ELEMENT(lvalue0, 2, 20);
+
+            h.insert(E{3, 30});             //대입 후 사용해도 문제가 없는지
+            assert(h.get_size() == 3);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+
+            assert(lvalue0.get_size() == 2);
+            CHECK_ELEMENT(lvalue0, 1, 10);
+            CHECK_ELEMENT(lvalue0, 2, 20);
+
+            h = lvalue1;                    //이미 원소가 있는 해시맵에 대입하는 경우
+            assert(h.get_size() == 4);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+
+            assert(lvalue1.get_size() == 4);
+            CHECK_ELEMENT(lvalue1, 1, 10);
+            CHECK_ELEMENT(lvalue1, 2, 20);
+            CHECK_ELEMENT(lvalue1, 3, 30);
+            CHECK_ELEMENT(lvalue1, 4, 40);
+
+            h.insert(E{5, 50});             //대입 후 사용해도 문제가 없는지
+            assert(h.get_size() == 5);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+            CHECK_ELEMENT(h, 5, 50);
+
+            assert(lvalue1.get_size() == 4);
+            CHECK_ELEMENT(lvalue1, 1, 10);
+            CHECK_ELEMENT(lvalue1, 2, 20);
+            CHECK_ELEMENT(lvalue1, 3, 30);
+            CHECK_ELEMENT(lvalue1, 4, 40);
+
+        }
+
+        //operator=(이동)
+        {
+
+            auto hash2{[](const E& e){return e.m_key * 5;}};
+
+            H lvalue0{hash2, {E{1, 10}, E{2, 20}}};
+            H lvalue1{hash2, {E{1, 10}, E{2, 20}, E{3, 30}, E{4, 40}}};
+            H h{hash};
+
+            h = std::move(lvalue0);                     //빈 해시맵에 대입하는 경우
+            assert(h.get_size() == 2);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+
+            assert(lvalue0.get_size() == 0);
+
+            h.insert(E{3, 30});                         //대입 후 사용해도 문제가 없는지
+            assert(h.get_size() == 3);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+
+            assert(lvalue0.get_size() == 0);
+
+            h = std::move(lvalue1);                     //이미 원소가 있는 해시맵에 대입하는 경우
+            assert(h.get_size() == 4);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+
+            assert(lvalue1.get_size() == 0);
+
+            h.insert(E{5, 50});                         //대입 후 사용해도 문제가 없는지
+            assert(h.get_size() == 5);
+            CHECK_ELEMENT(h, 1, 10);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+            CHECK_ELEMENT(h, 4, 40);
+            CHECK_ELEMENT(h, 5, 50);
+
+            assert(lvalue1.get_size() == 0);
+        }
         
 
-
         //insert
+        {
+
+            E                           lvalue0{1, 10};
+            E                           rvalue0{2, 20};
+            std::initializer_list<E>    initializer_list0{{3, 30}, {4, 40}};
+            H                           copy0{hash, {E{5, 50}, E{6, 60}}};
+            MIHYList<E>                 list0{E{7, 70}, E{8, 80}};
+            H                           h{hash};
+
+            h.insert(lvalue0);
+            h.insert(std::move(rvalue0));
+            h.insert(initializer_list0);
+            h.insert(copy0);
+            h.insert(list0.begin(), list0.end());
+            assert(h.get_size() == 8);
+            for(UInt64 i = 1; i <= 8; ++i){
+                CHECK_ELEMENT(h, i, i * 10);
+            }
+
+            //충돌하는 값을 넣었을 경우. 여러 원소를 집어넣는 경우에는 충돌되는 경우와 아닌 경우를 섞습니다.
+            std::initializer_list<E>    initializer_list1{{3, 30}, {4, 40}, {9, 90}};
+            H                           copy1{hash, {E{5, 50}, E{6, 60}, E{10, 100}}};
+            MIHYList<E>                 list1{E{7, 70}, E{8, 80}, E{11, 110}};
+
+            h.insert(lvalue0);
+            h.insert(rvalue0);
+            h.insert(initializer_list1);
+            h.insert(copy1);
+            h.insert(list1.begin(), list1.end());
+            assert(h.get_size() == 11);
+            for(UInt64 i = 1; i <= 11; ++i){
+                CHECK_ELEMENT(h, i, i * 10);
+            }
+
+
+        }
 
         //delete
+        {
+
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+
+            
+            assert(!h.erase(E{4, 10}));         //존재하지 않는 원소를 지우려고 할 때
+            assert(!h.erase(E{5, 20}));
+
+            assert(h.erase(E{1, 10}));          //존재하는 원소를 지우려고 할 때
+            assert(h.get_size() == 2);
+            CHECK_ELEMENT(h, 2, 20);
+            CHECK_ELEMENT(h, 3, 30);
+
+            assert(h.erase(E{2, 20}));
+            assert(h.get_size() == 1);
+            CHECK_ELEMENT(h, 3, 30);
+
+            assert(h.erase(E{3, 30}));
+            assert(h.get_size() == 0);
+
+            assert(!h.erase(E{1, 10}));         //존재하지 않는 원소를 지우려고 할 때
+            assert(!h.erase(E{2, 10}));
+            assert(!h.erase(E{3, 10}));
+            assert(!h.erase(E{4, 10}));
+            assert(!h.erase(E{5, 20}));
+
+        }
 
         //find
+        {
+
+            H h{hash};
+
+        }
+
+        //exists
 
     }
 
