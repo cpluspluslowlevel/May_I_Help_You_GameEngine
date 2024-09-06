@@ -2628,63 +2628,31 @@ namespace MIHYCore{
             /// @param new_table_size   새로운 테이블의 크기
             void rehash(BUCKET* old_table, UInt64 old_table_size, BUCKET* new_table, UInt64 new_table_size){
 
-                //재해쉬 되면서 노드가 재배치 되는데 이때 노드 리스트에 영향을 주게 됩니다.
-                //기존 테이블에 맞게 구성된 리스트를 버리고 새로운 리스트를 만들어야 합니다.
+                // //재해쉬 되면서 노드가 재배치 되는데 이때 노드 리스트에 영향을 주게 됩니다.
+                // //기존 테이블에 맞게 구성된 리스트를 버리고 새로운 리스트를 만들어야 합니다.
+                auto old_list_begin{m_node_list.empty_node.next};
+                auto old_list_end{m_node_list.empty_node.prev->next};
                 initialize_node_list();
 
-                //재해쉬 할 테이블과 기존 테이블이 같을때와 다를때를 구분합니다.
-                if(old_table != new_table){
-
-                    //다른 테이블에 재해쉬 할 경우에는 기존 노드를 전부 새로운 테이블로 옮깁니다.
+                //재해쉬 할 테이블과 기존 테이블이 같을때에는 테이블을 비웁니다.
+                if(old_table == new_table){
 
                     for(UInt64 i = 0; i < old_table_size; ++i){
 
-                        BUCKET& bucket{old_table[i]};
-
-                        auto loop_node{bucket.begin};
-                        while(loop_node != bucket.end->next){
-
-                            auto rehash_node{loop_node};
-                            loop_node = loop_node->next;
-
-                            insert_uncheck_rehash_threshold(rehash_node, new_table, new_table_size);
-
-                        }
-
+                        auto& bucket{old_table[i]};
                         bucket.begin = bucket.end = &m_node_list.empty_node;
 
                     }
 
-                }else{
+                }
 
-                    //두 테이블이 같은 테이블일 경우 재해쉬된 노드가 다시 재해쉬 되는 경우를 방지하기위해 노드를 모두 빼고 다시 넣습니다.
+                auto loop_node{old_list_begin};
+                while(loop_node != old_list_end){
 
-                    NODE* rehash_head{nullptr};
-                    for(UInt64 i = 0; i < old_table_size; ++i){
+                    auto insert_node{loop_node};
+                    loop_node = loop_node->next;
 
-                        auto loop_node{old_table[i].begin};
-                        while(loop_node != old_table[i].end->next){
-
-                            auto rehash_node{loop_node};
-                            loop_node = loop_node->next;
-
-                            rehash_node->next   = rehash_head;
-                            rehash_head         = rehash_node;
-
-                        }
-
-                        old_table[i].begin = old_table[i].end = &m_node_list.empty_node;
-
-                    }
-
-                    auto loop_node{rehash_head};
-                    while(loop_node != nullptr){
-
-                        auto insert_node{loop_node};
-                        loop_node = loop_node->next;
-                        insert_uncheck_rehash_threshold(insert_node, new_table, new_table_size);
-
-                    }
+                    insert_uncheck_rehash_threshold(insert_node, new_table, new_table_size);
 
                 }
 
