@@ -2429,11 +2429,29 @@ namespace MIHYCore{
         //find
         {
 
-            H h{hash};
+            H h{hash, {E{2, 20}, {3, 30}, {4, 40}}};
+            E temp{};
+
+            assert(!h.find(E{1, 10}, &temp));
+            assert(h.find(E{2, 20}, &temp) && temp.m_key == 2 && temp.m_value == 20);
+            assert(h.find(E{3, 30}, &temp) && temp.m_key == 3 && temp.m_value == 30);
+            assert(h.find(E{4, 40}, &temp) && temp.m_key == 4 && temp.m_value == 40);
+            assert(!h.find(E{5, 50}, &temp));
 
         }
 
         //exists
+        {
+
+            H h{hash, {E{2, 20}, {3, 30}, {4, 40}}};
+
+            assert(!h.exists(E{1, 10}));
+            assert(h.exists(E{2, 20}));
+            assert(h.exists(E{3, 30}));
+            assert(h.exists(E{4, 40}));
+            assert(!h.exists(E{5, 50}));
+
+        }
 
     }
 
