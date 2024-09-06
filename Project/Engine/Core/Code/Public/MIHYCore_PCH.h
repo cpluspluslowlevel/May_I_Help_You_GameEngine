@@ -14,5 +14,6 @@
 
 #include "MIHYPlatform.h"
 
+#include "MIHYCore_Common_Struct.h"
 
 #endif

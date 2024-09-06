@@ -1672,7 +1672,7 @@ namespace MIHYCore{
     void mihyhashmap_unittest(){
 
         using E = HashMapElement;
-        using H = MIHYHashMap<E>;
+        using H = MIHYHashTable<E>;
 
         auto hash{[](const E& e){return e.m_key;}};
 
