@@ -1662,7 +1662,7 @@ namespace MIHYCore{
         UInt64 m_key;
         UInt64 m_value;
 
-        bool operator==(const HashMapElement& lvalue){
+        bool operator==(const HashMapElement& lvalue) const{
             return m_key == lvalue.m_key && m_value == lvalue.m_value;
         }
 
@@ -1794,24 +1794,319 @@ namespace MIHYCore{
         }
 
         //Iterator begin, end
-
+        //Iterator operator=(복사)
+        //Iterator operator=(이동)
         //Iterator operator*
         //Iterator operator->
-
         //Iterator operator++
         //Iterator operator--
+        {
+
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            auto begin{h.begin()};
+            auto cbegin{h.cbegin()};
+            auto rbegin{h.rbegin()};
+            auto crbegin{h.crbegin()};
+            auto end{h.end()};
+            auto cend{h.cend()};
+            auto rend{h.rend()};
+            auto crend{h.crend()};
+            auto assign_begin{begin};
+            auto assign_cbegin{cbegin};
+            auto assign_rbegin{rbegin};
+            auto assign_crbegin{crbegin};
+            auto assign_end{end};
+            auto assign_cend{cend};
+            auto assign_rend{rend};
+            auto assign_crend{crend};
+
+            assert(*begin == E(1, 10));
+            assert(*cbegin == E(1, 10));
+            assert(*rbegin == E(3, 30));
+            assert(*crbegin == E(3, 30));
+            assert(begin->m_key == 1 && begin->m_value == 10);
+            assert(cbegin->m_key == 1 && cbegin->m_value == 10);
+            assert(rbegin->m_key == 3 && rbegin->m_value == 30);
+            assert(crbegin->m_key == 3 && crbegin->m_value == 30);
+
+
+            for(auto iter{begin}; iter != end; ++iter){}            //end들이 반복자의 마지막 역할을 하는지 확인합니다.
+            for(auto iter{cbegin}; iter != cend; ++iter){}
+            for(auto iter{rbegin}; iter != rend; ++iter){}
+            for(auto iter{crbegin}; iter != crend; ++iter){}
+
+            assign_begin    = begin;
+            assign_cbegin   = cbegin;
+            assign_rbegin   = rbegin;
+            assign_crbegin  = crbegin;
+            assign_end      = end;
+            assign_cend     = cend;
+            assign_rend     = rend;
+            assign_crend    = crend;
+            assert(*assign_begin == E(1, 10));
+            assert(*assign_cbegin == E(1, 10));
+            assert(*assign_rbegin == E(3, 30));
+            assert(*assign_crbegin == E(3, 30));
+            assert(assign_begin->m_key == 1 && assign_begin->m_value == 10);
+            assert(assign_cbegin->m_key == 1 && assign_cbegin->m_value == 10);
+            assert(assign_rbegin->m_key == 3 && assign_rbegin->m_value == 30);
+            assert(assign_crbegin->m_key == 3 && assign_crbegin->m_value == 30);
+
+
+            assign_begin    = ++begin;
+            assign_cbegin   = ++cbegin;
+            assign_rbegin   = ++rbegin;
+            assign_crbegin  = ++crbegin;
+            assert(*assign_begin == E(2, 20)    && *begin == E(2, 20));
+            assert(*assign_cbegin == E(2, 20)   && *cbegin == E(2, 20));
+            assert(*assign_rbegin == E(2, 20)   && *rbegin == E(2, 20));
+            assert(*assign_crbegin == E(2, 20)  && *crbegin == E(2, 20));
+            assert(assign_begin->m_key == 2     && assign_begin->m_value == 20      && begin->m_key == 2    && begin->m_value == 20);
+            assert(assign_cbegin->m_key == 2    && assign_cbegin->m_value == 20     && cbegin->m_key == 2   && cbegin->m_value == 20);
+            assert(assign_rbegin->m_key == 2    && assign_rbegin->m_value == 20     && rbegin->m_key == 2   && rbegin->m_value == 20);
+            assert(assign_crbegin->m_key == 2   && assign_crbegin->m_value == 20    && crbegin->m_key == 2  && crbegin->m_value == 20);
+
+            assign_begin    = ++begin;
+            assign_cbegin   = ++cbegin;
+            assign_rbegin   = ++rbegin;
+            assign_crbegin  = ++crbegin;
+            assert(*assign_begin == E(3, 30)    && *begin == E(3, 30));
+            assert(*assign_cbegin == E(3, 30)   && *cbegin == E(3, 30));
+            assert(*assign_rbegin == E(1, 10)   && *rbegin == E(1, 10));
+            assert(*assign_crbegin == E(1, 10)  && *crbegin == E(1, 10));
+            assert(assign_begin->m_key == 3     && assign_begin->m_value == 30      && begin->m_key == 3    && begin->m_value == 30);
+            assert(assign_cbegin->m_key == 3    && assign_cbegin->m_value == 30     && cbegin->m_key == 3   && cbegin->m_value == 30);
+            assert(assign_rbegin->m_key == 1    && assign_rbegin->m_value == 10     && rbegin->m_key == 1   && rbegin->m_value == 10);
+            assert(assign_crbegin->m_key == 1   && assign_crbegin->m_value == 10    && crbegin->m_key == 1  && crbegin->m_value == 10);
+
+            assign_begin    = --begin;
+            assign_cbegin   = --cbegin;
+            assign_rbegin   = --rbegin;
+            assign_crbegin  = --crbegin;
+            assert(*assign_begin == E(2, 20)    && *begin == E(2, 20));
+            assert(*assign_cbegin == E(2, 20)   && *cbegin == E(2, 20));
+            assert(*assign_rbegin == E(2, 20)   && *rbegin == E(2, 20));
+            assert(*assign_crbegin == E(2, 20)  && *crbegin == E(2, 20));
+            assert(assign_begin->m_key == 2     && assign_begin->m_value == 20      && begin->m_key == 2    && begin->m_value == 20);
+            assert(assign_cbegin->m_key == 2    && assign_cbegin->m_value == 20     && cbegin->m_key == 2   && cbegin->m_value == 20);
+            assert(assign_rbegin->m_key == 2    && assign_rbegin->m_value == 20     && rbegin->m_key == 2   && rbegin->m_value == 20);
+            assert(assign_crbegin->m_key == 2   && assign_crbegin->m_value == 20    && crbegin->m_key == 2  && crbegin->m_value == 20);
+
+            assign_begin    = --begin;
+            assign_cbegin   = --cbegin;
+            assign_rbegin   = --rbegin;
+            assign_crbegin  = --crbegin;
+            assert(*assign_begin == E(1, 10)    && *begin == E(1, 10));
+            assert(*assign_cbegin == E(1, 10)   && *cbegin == E(1, 10));
+            assert(*assign_rbegin == E(3, 30)   && *rbegin == E(3, 30));
+            assert(*assign_crbegin == E(3, 30)  && *crbegin == E(3, 30));
+            assert(assign_begin->m_key == 1     && assign_begin->m_value == 10      && begin->m_key == 1    && begin->m_value == 10);
+            assert(assign_cbegin->m_key == 1    && assign_cbegin->m_value == 10     && cbegin->m_key == 1   && cbegin->m_value == 10);
+            assert(assign_rbegin->m_key == 3    && assign_rbegin->m_value == 30     && rbegin->m_key == 3   && rbegin->m_value == 30);
+            assert(assign_crbegin->m_key == 3   && assign_crbegin->m_value == 30    && crbegin->m_key == 3  && crbegin->m_value == 30);
+
+
+
+            assign_begin    = begin++;
+            assign_cbegin   = cbegin++;
+            assign_rbegin   = rbegin++;
+            assign_crbegin  = crbegin++;
+            assert(*assign_begin == E(1, 10)    && *begin == E(2, 20));
+            assert(*assign_cbegin == E(1, 10)   && *cbegin == E(2, 20));
+            assert(*assign_rbegin == E(3, 30)   && *rbegin == E(2, 20));
+            assert(*assign_crbegin == E(3, 30)  && *crbegin == E(2, 20));
+            assert(assign_begin->m_key == 1     && assign_begin->m_value == 10      && begin->m_key == 2    && begin->m_value == 20);
+            assert(assign_cbegin->m_key == 1    && assign_cbegin->m_value == 10     && cbegin->m_key == 2   && cbegin->m_value == 20);
+            assert(assign_rbegin->m_key == 3    && assign_rbegin->m_value == 30     && rbegin->m_key == 2   && rbegin->m_value == 20);
+            assert(assign_crbegin->m_key == 3   && assign_crbegin->m_value == 30    && crbegin->m_key == 2  && crbegin->m_value == 20);
+
+            assign_begin    = begin++;
+            assign_cbegin   = cbegin++;
+            assign_rbegin   = rbegin++;
+            assign_crbegin  = crbegin++;
+            assert(*assign_begin == E(2, 20)    && *begin == E(3, 30));
+            assert(*assign_cbegin == E(2, 20)   && *cbegin == E(3, 30));
+            assert(*assign_rbegin == E(2, 20)   && *rbegin == E(1, 10));
+            assert(*assign_crbegin == E(2, 20)  && *crbegin == E(1, 10));
+            assert(assign_begin->m_key == 2     && assign_begin->m_value == 20      && begin->m_key == 3    && begin->m_value == 30);
+            assert(assign_cbegin->m_key == 2    && assign_cbegin->m_value == 20     && cbegin->m_key == 3   && cbegin->m_value == 30);
+            assert(assign_rbegin->m_key == 2    && assign_rbegin->m_value == 20     && rbegin->m_key == 1   && rbegin->m_value == 10);
+            assert(assign_crbegin->m_key == 2   && assign_crbegin->m_value == 20    && crbegin->m_key == 1  && crbegin->m_value == 10);
+
+            assign_begin    = begin--;
+            assign_cbegin   = cbegin--;
+            assign_rbegin   = rbegin--;
+            assign_crbegin  = crbegin--;
+            assert(*assign_begin == E(3, 30)    && *begin == E(2, 20));
+            assert(*assign_cbegin == E(3, 30)   && *cbegin == E(2, 20));
+            assert(*assign_rbegin == E(1, 10)   && *rbegin == E(2, 20));
+            assert(*assign_crbegin == E(1, 10)  && *crbegin == E(2, 20));
+            assert(assign_begin->m_key == 3     && assign_begin->m_value == 30      && begin->m_key == 2    && begin->m_value == 20);
+            assert(assign_cbegin->m_key == 3    && assign_cbegin->m_value == 30     && cbegin->m_key == 2   && cbegin->m_value == 20);
+            assert(assign_rbegin->m_key == 1    && assign_rbegin->m_value == 10     && rbegin->m_key == 2   && rbegin->m_value == 20);
+            assert(assign_crbegin->m_key == 1   && assign_crbegin->m_value == 10    && crbegin->m_key == 2  && crbegin->m_value == 20);
+
+            assign_begin    = begin--;
+            assign_cbegin   = cbegin--;
+            assign_rbegin   = rbegin--;
+            assign_crbegin  = crbegin--;
+            assert(*assign_begin == E(2, 20)    && *begin == E(1, 10));
+            assert(*assign_cbegin == E(2, 20)   && *cbegin == E(1, 10));
+            assert(*assign_rbegin == E(2, 20)   && *rbegin == E(3, 30));
+            assert(*assign_crbegin == E(2, 20)  && *crbegin == E(3, 30));
+            assert(assign_begin->m_key == 2     && assign_begin->m_value == 20      && begin->m_key == 1    && begin->m_value == 10);
+            assert(assign_cbegin->m_key == 2    && assign_cbegin->m_value == 20     && cbegin->m_key == 1   && cbegin->m_value == 10);
+            assert(assign_rbegin->m_key == 2    && assign_rbegin->m_value == 20     && rbegin->m_key == 3   && rbegin->m_value == 30);
+            assert(assign_crbegin->m_key == 2   && assign_crbegin->m_value == 20    && crbegin->m_key == 3  && crbegin->m_value == 30);
+
+        }
+
+        
 
         //Iterator operator==
         //Iterator operator!=
+        {
 
-        //Iterator 생성자(기본)
-        //Iterator 생성자(초기화 리스트)
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            auto begin{h.begin()};
+            auto cbegin{h.cbegin()};
+            auto rbegin{h.rbegin()};
+            auto crbegin{h.crbegin()};
+            auto end{h.end()};
+            auto cend{h.cend()};
+            auto rend{h.rend()};
+            auto crend{h.crend()};
+
+            assert(begin == cbegin);
+            assert(rbegin == crbegin);
+            assert(end == cend);
+            assert(rend == crend);
+
+            assert(begin != end);
+            assert(rbegin != rend);
+
+            H::Iterator iter{rend};        //rend
+            assert(iter != begin);
+            assert(iter != cbegin);
+            assert(iter != rbegin);
+            assert(iter != crbegin);
+            //assert(iter != end);          [begin, end]범위를 벗어났으므로 정의되지 않은 영역입니다.
+            //assert(iter != cend);         [begin, end]범위를 벗어났으므로 정의되지 않은 영역입니다.
+            assert(iter == rend);
+            assert(iter == crend);
+
+            ++iter;                 //1
+            assert(iter == begin);
+            assert(iter == cbegin);
+            assert(iter != rbegin);
+            assert(iter != crbegin);
+            assert(iter != end);
+            assert(iter != cend);
+            assert(iter != rend);
+            assert(iter != crend);
+
+            ++iter;                 //2
+            assert(iter != begin);
+            assert(iter != cbegin);
+            assert(iter != rbegin);
+            assert(iter != crbegin);
+            assert(iter != end);
+            assert(iter != cend);
+            assert(iter != rend);
+            assert(iter != crend);
+
+            ++iter;                 //3
+            assert(iter != begin);
+            assert(iter != cbegin);
+            assert(iter == rbegin);
+            assert(iter == crbegin);
+            assert(iter != end);
+            assert(iter != cend);
+            assert(iter != rend);
+            assert(iter != crend);
+
+            ++iter;                 //end
+            assert(iter != begin);
+            assert(iter != cbegin);
+            assert(iter != rbegin);
+            assert(iter != crbegin);
+            assert(iter == end);
+            assert(iter == cend);
+            //assert(iter != rend);             [rbegin, rend]범위를 벗어났으므로 정의되지 않은 영역입니다.
+            //assert(iter != crend);            [rbegin, rend]범위를 벗어났으므로 정의되지 않은 영역입니다.
+
+        }
+
         //Iterator 생성자(복사 생성자)
         //Iterator 생성자(이동 생성자)
         //Iterator 생성자(반복자)
+        {
 
-        //Iterator operator=(복사)
-        //Iterator operator=(이동)
+            H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
+            auto begin{h.begin()};
+            auto cbegin{h.cbegin()};
+            auto rbegin{h.rbegin()};
+            auto crbegin{h.crbegin()};
+            auto end{h.end()};
+            auto cend{h.cend()};
+            auto rend{h.rend()};
+            auto crend{h.crend()};
+
+            H::Iterator copy{begin};
+            H::Iterator ccopy{cbegin};
+            H::Iterator rcopy{rbegin};
+            H::Iterator crcopy{crbegin};
+            assert(copy == begin);
+            assert(ccopy == cbegin);
+            assert(rcopy == rbegin);
+            assert(crcopy == crbegin);
+
+            H::Iterator move{std::move(copy)};
+            H::Iterator cmove{std::move(ccopy)};
+            H::Iterator rmove{std::move(rcopy)};
+            H::Iterator crmove{std::move(crcopy)};
+            assert(move == begin);
+            assert(cmove == cbegin);
+            assert(rmove == rbegin);
+            assert(crmove == crbegin);
+
+            H::Iterator iter_copy_iter{begin};
+            H::Iterator iter_copy_citer{cbegin};
+            H::Iterator iter_copy_riter{rbegin};
+            H::Iterator iter_copy_criter{crbegin};
+            assert(iter_copy_iter == begin);
+            assert(iter_copy_citer == cbegin);
+            assert(iter_copy_riter == rbegin);
+            assert(iter_copy_criter == crbegin);
+
+            H::Const_Iterator citer_copy_iter{begin};
+            H::Const_Iterator citer_copy_citer{cbegin};
+            H::Const_Iterator citer_copy_riter{rbegin};
+            H::Const_Iterator citer_copy_criter{crbegin};
+            assert(citer_copy_iter == begin);
+            assert(citer_copy_citer == cbegin);
+            assert(citer_copy_riter == rbegin);
+            assert(citer_copy_criter == crbegin);
+
+            H::Reverse_Iterator riter_copy_iter{begin};
+            H::Reverse_Iterator riter_copy_citer{cbegin};
+            H::Reverse_Iterator riter_copy_riter{rbegin};
+            H::Reverse_Iterator riter_copy_criter{crbegin};
+            assert(riter_copy_iter == begin);
+            assert(riter_copy_citer == cbegin);
+            assert(riter_copy_riter == rbegin);
+            assert(riter_copy_criter == crbegin);
+
+            H::Const_Reverse_Iterator criter_copy_iter{begin};
+            H::Const_Reverse_Iterator criter_copy_citer{cbegin};
+            H::Const_Reverse_Iterator criter_copy_riter{rbegin};
+            H::Const_Reverse_Iterator criter_copy_criter{crbegin};
+            assert(criter_copy_iter == begin);
+            assert(criter_copy_citer == cbegin);
+            assert(criter_copy_riter == rbegin);
+            assert(criter_copy_criter == crbegin);
+
+        }
 
         //생성자(기본)
         {
