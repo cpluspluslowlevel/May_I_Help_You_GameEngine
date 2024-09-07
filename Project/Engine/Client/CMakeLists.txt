@@ -12,7 +12,7 @@ message(STATUS "---------------------------------------------------")
 file(GLOB_RECURSE MIHYCLIENT_SOURCE    "${MIHYCLIENT_CODE_DIRECTORY}/*.cpp"
                                        "${MIHYCLIENT_CODE_DIRECTORY}/*.ixx")
 
-add_executable(${MIHYCLIENT_PROJECT_NAME} ${MIHYCLIENT_SOURCE})
+add_executable(${MIHYCLIENT_PROJECT_NAME} WIN32 ${MIHYCLIENT_SOURCE})
 
 target_link_libraries(${MIHYCLIENT_PROJECT_NAME} PRIVATE ${MIHYPLATFORM_PROJECT_NAME})
 target_link_libraries(${MIHYCLIENT_PROJECT_NAME} PRIVATE ${MIHYCORE_PROJECT_NAME})

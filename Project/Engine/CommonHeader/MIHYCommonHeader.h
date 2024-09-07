@@ -29,5 +29,6 @@ using WChar     = Char16;
 #include <functional>
 #include <assert.h>
 
+//#define NOMINMAX
 
 #endif

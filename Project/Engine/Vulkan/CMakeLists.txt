@@ -12,4 +12,11 @@ message(STATUS "---------------------------------------------------")
 file(GLOB_RECURSE MIHYVULKAN_SOURCE     "${MIHYVULKAN_CODE_DIRECTORY}/*.cpp"
                                         "${MIHYVULKAN_CODE_DIRECTORY}/*ixx")
 
+message($ENV{VULKAN_SDK}/Include)
+message($ENV{VULKAN_SDK}/Lib)
+
+include_directories($ENV{VULKAN_SDK}/Include)
+link_directories($ENV{VULKAN_SDK}/Lib)
+
+
 add_library(${MIHYVULKAN_PROJECT_NAME} SHARED ${MIHYVULKAN_SOURCE})

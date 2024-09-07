@@ -1356,7 +1356,7 @@ namespace MIHYCore{
                 auto    iter{list.begin()};
 
                 //이미 생성된 노드의 크기만큼 복사합니다.
-                const UInt64 overlap_count{std::min(m_size, list.size())};
+                const UInt64 overlap_count{m_size < list.size() ? m_size : list.size()};
                 for(UInt64 i = 0; i < overlap_count; ++i){
 
                     loop->value = iter->value;
@@ -1414,7 +1414,7 @@ namespace MIHYCore{
                 auto    lvalue_copy_loop{lvalue.m_empty_node.next};
 
                 //이미 생성된 노드의 크기만큼 복사합니다.
-                const UInt64 overlap_count{std::min(m_size, lvalue.m_size)};
+                const UInt64 overlap_count{m_size < lvalue.m_size ? m_size : lvalue.m_size};
                 for(UInt64 i = 0; i < overlap_count; ++i){
 
                     loop->value = lvalue_copy_loop->value;
