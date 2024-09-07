@@ -2168,11 +2168,11 @@ namespace MIHYCore{
             MIHYHashTable_Iterator_Base& operator=(const MIHYHashTable_Iterator_Base&) = default;
             MIHYHashTable_Iterator_Base& operator=(MIHYHashTable_Iterator_Base&&) = default;
 
-            const Trait::Element& operator*() const{
+            const typename Trait::Element& operator*() const{
                 return m_node->value;
             }
 
-            const Trait::Element* operator->() const{
+            const typename Trait::Element* operator->() const{
                 return &m_node->value;
             }
 

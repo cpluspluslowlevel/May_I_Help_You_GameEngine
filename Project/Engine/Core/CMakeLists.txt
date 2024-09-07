@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 project(${MIHYCORE_PROJECT_NAME})
 
 
-# Print log
 message(STATUS "---------------------------------------------------")
 message(STATUS "LIST_DIRECTORY: ${CMAKE_CURRENT_LIST_DIR}")
 message(STATUS "SOURCE_DIRECTORY: ${CMAKE_CURRENT_SOURCE_DIR}")
