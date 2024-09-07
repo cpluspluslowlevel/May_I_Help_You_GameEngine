@@ -2119,6 +2119,35 @@ namespace MIHYCore{
 
         };
 
+        template<typename Key, typename Value>
+        class MIHYHashTable_Map_Trigger{
+        public:
+        };
+
+        template<typename Type>
+        class MIHYHashTable_Element_Trait{
+        public:
+
+            static constexpr bool Is_Map = false;
+
+            using Key       = Type;
+            using Value     = Type;
+            using Element   = Type;
+
+        };
+
+        template<typename Key_Type, typename Value_Type>
+        class MIHYHashTable_Element_Trait<MIHYHashTable_Map_Trigger<Key_Type, Value_Type>>{
+        public:
+
+            static constexpr bool Is_Map = true;
+
+            using Key       = Key_Type;
+            using Value     = Value_Type;
+            using Element   = MIHYCORE_PAIR<Key, Value>;
+
+        };
+
         template<typename Type>
         class MIHYHashTable;
 
@@ -2128,7 +2157,8 @@ namespace MIHYCore{
         class MIHYHashTable_Iterator_Base{
         public:
 
-            using NODE = MIHYHASHTABLE_LIST_NODE<Type>;
+            using Trait = Type::Trait;
+            using NODE  = Type::NODE;
 
         public:
             MIHYHashTable_Iterator_Base() = default;
@@ -2138,11 +2168,11 @@ namespace MIHYCore{
             MIHYHashTable_Iterator_Base& operator=(const MIHYHashTable_Iterator_Base&) = default;
             MIHYHashTable_Iterator_Base& operator=(MIHYHashTable_Iterator_Base&&) = default;
 
-            const Type& operator*() const{
+            const Trait::Element& operator*() const{
                 return m_node->value;
             }
 
-            const Type* operator->() const{
+            const Trait::Element* operator->() const{
                 return &m_node->value;
             }
 
@@ -2160,7 +2190,7 @@ namespace MIHYCore{
 
             NODE* m_node;
 
-            friend MIHYHashTable<Type>;
+            friend Type;
 
         };
 
@@ -2214,11 +2244,11 @@ namespace MIHYCore{
                 return *this;
             }
 
-            Type& operator*(){
+            MIHYHashTable_Iterator_Base<Type>::Trait::Element& operator*(){
                 return this->m_node->value;
             }
 
-            Type* operator->(){
+            MIHYHashTable_Iterator_Base<Type>::Trait::Element* operator->(){
                 return &this->m_node->value;
             }
 
@@ -2296,11 +2326,11 @@ namespace MIHYCore{
                 return *this;
             }
 
-            Type& operator*(){
+            MIHYHashTable_Iterator_Base<Type>::Trait::Element& operator*(){
                 return this->m_node->value;
             }
 
-            Type* operator->(){
+            MIHYHashTable_Iterator_Base<Type>::Trait::Element* operator->(){
                 return &this->m_node->value;
             }
 
@@ -2328,35 +2358,6 @@ namespace MIHYCore{
 
         };
 
-        template<typename Key, typename Value>
-        class MIHYHashTable_Map_Trigger{
-        public:
-        };
-
-        template<typename Type>
-        class MIHYHashTable_Element_Trait{
-        public:
-
-            static constexpr bool Is_Map = false;
-
-            using Key       = Type;
-            using Value     = Type;
-            using Element   = Type;
-
-        };
-
-        template<typename Key_Type, typename Value_Type>
-        class MIHYHashTable_Element_Trait<MIHYHashTable_Map_Trigger<Key_Type, Value_Type>>{
-        public:
-
-            static constexpr bool Is_Map = true;
-
-            using Key       = Key_Type;
-            using Value     = Value_Type;
-            using Element   = MIHYCORE_PAIR<Key, Value>;
-
-        };
-
         /// @brief          해쉬테이블 클래스입니다.
         /// @tparam Type    해쉬테이블의 원소 타입
         template<typename Type>
@@ -2376,10 +2377,10 @@ namespace MIHYCore{
             using BUCKET        = MIHYHASHTABLE_BUCKET<Element>;
             using BUCKET_TABLE  = MIHYHASHTABLE_BUCKET_TABLE<Element>;
 
-            using Iterator                  = MIHYHashTable_Iterator<Element>;
-            using Const_Iterator            = MIHYHashTable_Const_Iterator<Element>;
-            using Reverse_Iterator          = MIHYHashTable_Reverse_Iterator<Element>;
-            using Const_Reverse_Iterator    = MIHYHashTable_Const_Reverse_Iterator<Element>;
+            using Iterator                  = MIHYHashTable_Iterator<MIHYHashTable>;
+            using Const_Iterator            = MIHYHashTable_Const_Iterator<MIHYHashTable>;
+            using Reverse_Iterator          = MIHYHashTable_Reverse_Iterator<MIHYHashTable>;
+            using Const_Reverse_Iterator    = MIHYHashTable_Const_Reverse_Iterator<MIHYHashTable>;
 
             struct FIND_INSERTION_POSITION_RESULT{
                 bool                is_duplicated;
@@ -2415,10 +2416,10 @@ namespace MIHYCore{
             /// @brief                  초기화 리스트를 입력으로 받는 생성자입니다.
             /// @param hash_function    해쉬 함수
             /// @param list             초기화 리스트
-            MIHYHashTable(std::function<Hash_Function> hash_function, std::initializer_list<Type> list) : m_hash_function{hash_function},
-                                                                                                        m_bucket_table{nullptr, 0ULL},
-                                                                                                        m_node_list{new NODE{}, 0ULL},
-                                                                                                        m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
+            MIHYHashTable(std::function<Hash_Function> hash_function, std::initializer_list<Element> list) : m_hash_function{hash_function},
+                                                                                                             m_bucket_table{nullptr, 0ULL},
+                                                                                                             m_node_list{new NODE{}, 0ULL},
+                                                                                                             m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
                 initialize_node_list();
                 reserve_bucket_table(list.size());
                 for(auto& element : list){
@@ -2444,9 +2445,9 @@ namespace MIHYCore{
             /// @param hash_function    해쉬 함수
             /// @param rvalue           이동 대상
             MIHYHashTable(MIHYHashTable&& rvalue) : m_hash_function{rvalue.m_hash_function},
-                                                m_bucket_table{std::move(rvalue.m_bucket_table)},
-                                                m_node_list{new NODE{}, 0ULL},
-                                                m_rehash_threshold{rvalue.m_rehash_threshold}{
+                                                    m_bucket_table{std::move(rvalue.m_bucket_table)},
+                                                    m_node_list{new NODE{}, 0ULL},
+                                                    m_rehash_threshold{rvalue.m_rehash_threshold}{
 
                 std::swap(m_node_list.empty_node, rvalue.m_node_list.empty_node);
                 m_node_list.size = rvalue.m_node_list.size;
@@ -2468,9 +2469,9 @@ namespace MIHYCore{
             /// @param end              끝 반복자
             template<typename Copy_Iterator>
             MIHYHashTable(std::function<Hash_Function> hash_function, Copy_Iterator begin, Copy_Iterator end) : m_hash_function{hash_function},
-                                                                                                              m_bucket_table{nullptr, 0ULL},
-                                                                                                              m_node_list{new NODE{}, 0ULL},
-                                                                                                              m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
+                                                                                                                m_bucket_table{nullptr, 0ULL},
+                                                                                                                m_node_list{new NODE{}, 0ULL},
+                                                                                                                m_rehash_threshold{DEFAULT_REHASH_THRESHOLD}{
                 initialize_node_list();
                 reserve_bucket_table(mihyiterator_distance(begin, end));
                 for(auto iter = begin; iter != end; ++iter){
@@ -2487,7 +2488,7 @@ namespace MIHYCore{
             /// @brief          초기화 리스트를 입력으로 받는 대입 연산자입니다.
             /// @param list     초기화 리스트
             /// @return         스스로의 참조
-            MIHYHashTable& operator=(std::initializer_list<Type> list){
+            MIHYHashTable& operator=(std::initializer_list<Element> list){
 
                 clear();
                 reserve_bucket_table(list.size());
@@ -2553,21 +2554,21 @@ namespace MIHYCore{
 
             /// @brief          원소를 추가합니다.
             /// @param lvalue   추가 대상
-            void insert(const Type& lvalue){
+            void insert(const Element& lvalue){
                 insert_uncheck_rehash_threshold(lvalue, m_bucket_table.table, m_bucket_table.size);
                 try_expanding_bucket_table();
             }
 
             /// @brief          원소를 추가합니다.
             /// @param rvalue   추가 대상
-            void insert(Type&& rvalue){
+            void insert(Element&& rvalue){
                 insert_uncheck_rehash_threshold(std::move(rvalue), m_bucket_table.table, m_bucket_table.size);
                 try_expanding_bucket_table();
             }
 
             /// @brief          원소를 추가합니다.
             /// @param list     추가 대상
-            void insert(std::initializer_list<Type> list){
+            void insert(std::initializer_list<Element> list){
 
                 try_expanding_bucket_table(list.size());
 
@@ -2605,7 +2606,7 @@ namespace MIHYCore{
 
             }
 
-            bool erase(const Type& value){
+            bool erase(const Key& value){
 
                 auto find{find_insertion_position(value, m_bucket_table.table, m_bucket_table.size)};
                 if(find.is_duplicated){
@@ -2643,9 +2644,9 @@ namespace MIHYCore{
             /// @param value    찾을 원소의 값
             /// @param result   찾은 원소의 값. 찾지 못하면 변경되지 않습니다.
             /// @return         원소를 찾았으면 true, 아니면 false
-            bool find(const Type& value, Type* out_result){
+            bool find(const Key& key, Element* out_result){
                 
-                auto find{find_insertion_position(value, m_bucket_table.table, m_bucket_table.size)};
+                auto find{find_insertion_position(key, m_bucket_table.table, m_bucket_table.size)};
 
                 if(find.is_duplicated){
                     *out_result = find.node->value;
@@ -2656,7 +2657,7 @@ namespace MIHYCore{
 
             }
 
-            bool exists(const Type& value){
+            bool exists(const Key& value){
                 return find_insertion_position(value, m_bucket_table.table, m_bucket_table.size).is_duplicated;
             }
 
@@ -2664,7 +2665,7 @@ namespace MIHYCore{
             /// @param value                해쉬 값을 계산할 값
             /// @param bucket_table_size    해쉬 테이블의 크기
             /// @return                     해쉬 값
-            UInt64 hash(const Type& value, UInt64 bucket_table_size){
+            UInt64 hash(const Key& value, UInt64 bucket_table_size){
                 return m_hash_function(value) % bucket_table_size;
             }
 
@@ -2759,7 +2760,7 @@ namespace MIHYCore{
 
             /// @brief                      재해쉬 임계값을 설정합니다. 임계값 변경으로인해 해쉬 테이블 크기가 확장 될 수 있습니다.
             /// @param rehash_threshold     설정할 재해쉬 임계값
-            void set_rehash_threshold(float rehash_threshold){
+            void set_rehash_threshold(Float32 rehash_threshold){
                 m_rehash_threshold = rehash_threshold;
                 try_expanding_bucket_table();
             }
@@ -2822,17 +2823,27 @@ namespace MIHYCore{
                 reserve_bucket_table(calculate_bucket_table_size(m_node_list.size + additional_size, m_rehash_threshold));
             }
 
-            FIND_INSERTION_POSITION_RESULT find_insertion_position(const Type& lvalue, BUCKET* bucket_table, UInt64 bucket_table_size){
+            FIND_INSERTION_POSITION_RESULT find_insertion_position(const Key& key, BUCKET* bucket_table, UInt64 bucket_table_size){
 
-                UInt64  bucket_index{hash(lvalue, bucket_table_size)};
+                UInt64  bucket_index{hash(key, bucket_table_size)};
                 BUCKET& bucket{bucket_table[bucket_index]};
 
                 auto loop_node{bucket.begin};
                 while(loop_node != bucket.end->next){
 
                     //중복된 원소가 있는 경우 중복된 원소를 반환합니다.
-                    if(loop_node->value == lvalue){
-                        return {true, loop_node};
+                    if constexpr(Trait::Is_Map){
+
+                        if(loop_node->value.first == key){
+                            return {true, loop_node};
+                        }
+
+                    }else{
+
+                        if(loop_node->value == key){
+                            return {true, loop_node};
+                        }
+
                     }
 
                     loop_node = loop_node->next;
@@ -2843,9 +2854,15 @@ namespace MIHYCore{
 
             }
 
-            void insert_uncheck_rehash_threshold(const Type& lvalue, BUCKET* bucket_table, UInt64 bucket_table_size){
+            void insert_uncheck_rehash_threshold(const Element& lvalue, BUCKET* bucket_table, UInt64 bucket_table_size){
 
-                auto insertion_position{find_insertion_position(lvalue, bucket_table, bucket_table_size)};
+                FIND_INSERTION_POSITION_RESULT insertion_position{};
+                if constexpr(Trait::Is_Map){
+                    insertion_position = find_insertion_position(lvalue.first, bucket_table, bucket_table_size);
+                }else{
+                    insertion_position = find_insertion_position(lvalue, bucket_table, bucket_table_size);
+                }
+
                 if(insertion_position.is_duplicated){
                     insertion_position.node->value = lvalue;
                 }else{
@@ -2855,9 +2872,15 @@ namespace MIHYCore{
 
             }
 
-            void insert_uncheck_rehash_threshold(Type&& rvalue, BUCKET* bucket_table, UInt64 bucket_table_size){
+            void insert_uncheck_rehash_threshold(Element&& rvalue, BUCKET* bucket_table, UInt64 bucket_table_size){
 
-                auto insertion_position{find_insertion_position(rvalue, bucket_table, bucket_table_size)};
+                FIND_INSERTION_POSITION_RESULT insertion_position{};
+                if constexpr(Trait::Is_Map){
+                    insertion_position = find_insertion_position(rvalue.first, bucket_table, bucket_table_size);
+                }else{
+                    insertion_position = find_insertion_position(rvalue, bucket_table, bucket_table_size);
+                }
+
                 if(insertion_position.is_duplicated){
                     insertion_position.node->value = std::move(rvalue);
                 }else{
@@ -2869,7 +2892,13 @@ namespace MIHYCore{
 
             void insert_uncheck_rehash_threshold(NODE* node, BUCKET* bucket_table, UInt64 bucket_table_size){
 
-                auto insertion_position{find_insertion_position(node->value, bucket_table, bucket_table_size)};
+                FIND_INSERTION_POSITION_RESULT insertion_position{};
+                if constexpr(Trait::Is_Map){
+                    insertion_position = find_insertion_position(node->value.first, bucket_table, bucket_table_size);
+                }else{
+                    insertion_position = find_insertion_position(node->value, bucket_table, bucket_table_size);
+                }
+
                 if(insertion_position.is_duplicated){
                     insertion_position.node->value = node->value;
                     delete node;
@@ -2882,7 +2911,12 @@ namespace MIHYCore{
 
             void insert_node(NODE* node, FIND_INSERTION_POSITION_RESULT& insertion_position, BUCKET* bucket_table, UInt64 bucket_table_size){
 
-                UInt64 bucket_table_index{hash(node->value, bucket_table_size)};
+                UInt64 bucket_table_index{};
+                if constexpr(Trait::Is_Map){
+                    bucket_table_index = hash(node->value.first, bucket_table_size);
+                }else{
+                    bucket_table_index = hash(node->value, bucket_table_size);
+                }
                 auto& bucket{bucket_table[bucket_table_index]};
 
                 //버킷이 비어있는 경우 리스트 맨 뒤에 추가합니다.
@@ -2959,6 +2993,12 @@ namespace MIHYCore{
             friend void mihyhashmap_unittest();
 
         };
+
+        template<typename Type>
+        using MIHYCore_HashSet = MIHYHashTable<Type>;
+        
+        template<typename Key_Type, typename Value_Type>
+        using MIHYCore_HashMap = MIHYHashTable<MIHYHashTable_Map_Trigger<Key_Type, Value_Type>>;
 
         //Unit test
         MIHYCORE_API void mihyvector_unittest();

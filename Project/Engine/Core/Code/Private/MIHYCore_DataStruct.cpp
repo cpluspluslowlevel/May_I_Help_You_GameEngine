@@ -2364,7 +2364,7 @@ namespace MIHYCore{
 
             E                           lvalue0{1, 10};
             E                           rvalue0{2, 20};
-            std::initializer_list<E>    initializer_list0{{3, 30}, {4, 40}};
+            std::initializer_list<E>    initializer_list0{E{3, 30}, E{4, 40}};
             H                           copy0{hash, {E{5, 50}, E{6, 60}}};
             MIHYList<E>                 list0{E{7, 70}, E{8, 80}};
             H                           h{hash};
@@ -2397,7 +2397,7 @@ namespace MIHYCore{
 
         }
 
-        //delete
+        //erase
         {
 
             H h{hash, {E{1, 10}, E{2, 20}, E{3, 30}}};
@@ -2429,7 +2429,7 @@ namespace MIHYCore{
         //find
         {
 
-            H h{hash, {E{2, 20}, {3, 30}, {4, 40}}};
+            H h{hash, {E{2, 20}, E{3, 30}, E{4, 40}}};
             E temp{};
 
             assert(!h.find(E{1, 10}, &temp));
@@ -2443,13 +2443,113 @@ namespace MIHYCore{
         //exists
         {
 
-            H h{hash, {E{2, 20}, {3, 30}, {4, 40}}};
+            H h{hash, {E{2, 20}, E{3, 30}, E{4, 40}}};
 
             assert(!h.exists(E{1, 10}));
             assert(h.exists(E{2, 20}));
             assert(h.exists(E{3, 30}));
             assert(h.exists(E{4, 40}));
             assert(!h.exists(E{5, 50}));
+
+        }
+
+
+        //Map
+        //몇 개의 함수를 제외한 나머지는 같은 코드를 사용하기에 insert, erase, find 확인
+
+        using HM = MIHYCore_HashMap<UInt64, UInt64>;
+        using EM = HM::Element;
+
+        auto hashm{[](const UInt64& key){return key;}};
+
+        #define CHECK_ELEMENT_M(h, key, value)      \
+        {                                           \
+            EM e;                                   \
+            if(h.find(key, &e)){           \
+                assert(e.first == key);             \
+                assert(e.second == value);          \
+            }else{                                  \
+                assert(false);                      \
+            }                                       \
+        }
+
+        //insert
+        {
+
+            EM                           lvalue0{1, 10};
+            EM                           rvalue0{2, 20};
+            std::initializer_list<EM>    initializer_list0{{3, 30}, {4, 40}};
+            HM                           copy0{hashm, {{5, 50}, {6, 60}}};
+            MIHYList<EM>                 list0{{7, 70}, {8, 80}};
+            HM                           h{hashm};
+
+            h.insert(lvalue0);
+            h.insert(std::move(rvalue0));
+            h.insert(initializer_list0);
+            h.insert(copy0);
+            h.insert(list0.begin(), list0.end());
+            assert(h.get_size() == 8);
+            for(UInt64 i = 1; i <= 8; ++i){
+                CHECK_ELEMENT_M(h, i, i * 10);
+            }
+
+            //충돌하는 값을 넣었을 경우. 여러 원소를 집어넣는 경우에는 충돌되는 경우와 아닌 경우를 섞습니다.
+            std::initializer_list<EM>    initializer_list1{{3, 30}, {4, 40}, {9, 90}};
+            HM                           copy1{hashm, {{5, 50}, {6, 60}, {10, 100}}};
+            MIHYList<EM>                 list1{{7, 70}, {8, 80}, {11, 110}};
+
+            h.insert(lvalue0);
+            h.insert(rvalue0);
+            h.insert(initializer_list1);
+            h.insert(copy1);
+            h.insert(list1.begin(), list1.end());
+            assert(h.get_size() == 11);
+            for(UInt64 i = 1; i <= 11; ++i){
+                CHECK_ELEMENT_M(h, i, i * 10);
+            }
+
+        }
+
+        //erase
+        {
+
+            HM h{hashm, {{1, 10}, {2, 20}, {3, 30}}};
+
+            
+            assert(!h.erase(4));         //존재하지 않는 원소를 지우려고 할 때
+            assert(!h.erase(5));
+
+            assert(h.erase(1));          //존재하는 원소를 지우려고 할 때
+            assert(h.get_size() == 2);
+            CHECK_ELEMENT_M(h, 2, 20);
+            CHECK_ELEMENT_M(h, 3, 30);
+
+            assert(h.erase(2));
+            assert(h.get_size() == 1);
+            CHECK_ELEMENT_M(h, 3, 30);
+
+            assert(h.erase(3));
+            assert(h.get_size() == 0);
+
+            assert(!h.erase(1));         //존재하지 않는 원소를 지우려고 할 때
+            assert(!h.erase(2));
+            assert(!h.erase(3));
+            assert(!h.erase(4));
+            assert(!h.erase(5));
+
+        }
+
+        //find
+        {
+
+            HM h{hashm, {{2, 20}, {3, 30}, {4, 40}}};
+            EM temp{};
+
+            assert(!h.find(1, &temp));
+            assert(h.find(2, &temp) && temp.first == 2 && temp.second == 20);
+            assert(h.find(3, &temp) && temp.first == 3 && temp.second == 30);
+            assert(h.find(4, &temp) && temp.first == 4 && temp.second == 40);
+            assert(!h.find(5, &temp));
 
         }
 
