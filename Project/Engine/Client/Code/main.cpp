@@ -52,6 +52,8 @@ INT WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE, LPSTR command, INT comm
     ShowWindow(window_handle, SW_SHOW);
     UpdateWindow(window_handle);
 
+    MIHYVulkan::mihyvulkan_find_physical_device();
+
     MSG message{};
     ZeroMemory(&message, sizeof(message));
     while(message.message != WM_QUIT){
@@ -60,8 +62,6 @@ INT WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE, LPSTR command, INT comm
             DispatchMessage(&message);
         }
     }
-
-    MIHYVulkan::mihyvulkan_find_physical_device();
 
     return 0;
 
