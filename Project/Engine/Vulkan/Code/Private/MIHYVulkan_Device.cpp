@@ -7,6 +7,10 @@
 
 VkInstance instance;
 
+MIHYCore::DataStruct::MIHYVector<const char*> required_layer_name_vector{1, {
+                                                                                "VK_LAYER_LUNARG_standard_validation"
+                                                                            }};
+
 namespace MIHYVulkan{
 
     void mihyvulkan_find_physical_device(){
@@ -36,6 +40,15 @@ namespace MIHYVulkan{
         }else{
             std::cout << "Vulkan Instance Creation Failed" << std::endl;
         }
+
+        UInt32 layer_property_count;
+        vkEnumerateInstanceLayerProperties(&layer_property_count, nullptr);
+
+        MIHYCore::DataStruct::MIHYVector<VkLayerProperties> layer_property_vector{layer_property_count};
+        layer_property_vector.resize(layer_property_count);
+        vkEnumerateInstanceLayerProperties(&layer_property_count, layer_property_vector.get_memory());
+
+
 
     }
 

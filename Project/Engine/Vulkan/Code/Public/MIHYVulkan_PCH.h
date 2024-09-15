@@ -3,7 +3,11 @@
 
 #include "MIHYCommonHeader.h"
 
+#include "MIHYPlATFORM.H"
 #include "MIHYPlatform_API.h"
+
+#include "MIHYCore.h"
+#include "MIHYCore_DataStruct.h"
 
 #if defined(MIHYVULKAN_IMPORT)
     #define MIHYVULKAN_API MIHYPLATFORM_LIBRARY_SYMBOL_IMPORT_COMMAND
