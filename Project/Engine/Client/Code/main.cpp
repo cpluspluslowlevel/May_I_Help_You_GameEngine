@@ -9,6 +9,28 @@
 #include "MIHYVulkan.h"
 #include "MIHYVulkan_Device.h"
 
+
+class Temporary_GUI_Element : public MIHYPlatform::GUI::MIHYPlatform_GUI_Element{
+public:
+
+    void initialize() override{
+        std::cout << "Tempolary_GUI_Element initialize" << std::endl;
+    }
+
+    void release() override{
+        std::cout << "Tempolary_GUI_Element release" << std::endl;
+    }
+
+    MIHYPlatform::GUI::MIHYPLATFORM_GUI_DATA get_data() override{
+        MIHYPlatform::GUI::MIHYPLATFORM_GUI_DATA data{};
+        data.handle = window_handle;
+        return data;
+    }
+
+    HWND window_handle;
+
+};
+
 LRESULT CALLBACK message_processor(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param){
     switch (message){
     case WM_DESTROY:
@@ -52,7 +74,15 @@ INT WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE, LPSTR command, INT comm
     ShowWindow(window_handle, SW_SHOW);
     UpdateWindow(window_handle);
 
-    MIHYVulkan::mihyvulkan_find_physical_device();
+    
+
+    MIHYPlatform::MIHYPLATFORM_PLATFORM platform{};
+    platform.program_instance_handle = instance_handle;
+
+    Temporary_GUI_Element temporary_gui_element{};
+    temporary_gui_element.window_handle = window_handle;
+
+    MIHYVulkan::mihyvulkan_initialize(&platform, &temporary_gui_element);
 
     MSG message{};
     ZeroMemory(&message, sizeof(message));
@@ -62,6 +92,8 @@ INT WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE, LPSTR command, INT comm
             DispatchMessage(&message);
         }
     }
+
+    MIHYVulkan::mihyvulkan_release();
 
     return 0;
 

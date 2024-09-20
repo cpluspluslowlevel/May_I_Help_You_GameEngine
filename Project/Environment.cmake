@@ -3,6 +3,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 
+# c++ compile options
 if(MSVC)
     add_compile_options(/utf-8)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -11,9 +12,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL 
     add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8 -g)
 endif()
 
+
+# c++ defines
+add_compile_definitions(MIHY_PLATFORM_WINDOWS)
+
+
+# cmake defines
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
+
 
 
 set(MIHY_ENGINE_NAME                                    May_I_Help_You_GameEngine)

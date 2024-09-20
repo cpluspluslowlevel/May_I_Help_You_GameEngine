@@ -1,8 +1,11 @@
 컨테이너 구현
     -벡터                   완료
-    -리스트                 진행중
+    -리스트                 완료
     -큐
     -스텍
-    -해쉬 테이블
-        -set
-        -map
+    -해쉬 테이블            완료
+        -set               완료
+        -map               완료
+
+빌드 시스템
+    -CMake PUBLIC PRIVATE를 활용한 종속성 구조로 ProjectList.cmake에 있는 include_directories를 각 CMakeLists.txt로 옮기기

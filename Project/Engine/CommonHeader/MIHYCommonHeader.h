@@ -19,6 +19,8 @@ using Char16    = Int16;
 using Char      = Char8;
 using WChar     = Char16;
 
+using Boolean   = bool;
+
 #include <iostream>
 #include <unordered_map>
 #include <vector>
