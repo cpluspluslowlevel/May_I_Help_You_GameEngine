@@ -309,6 +309,7 @@ namespace MIHYVulkan{
 
 
         //스왑체인과 연동합니다.
+        
         UInt32 surface_format_count{};
         UInt32 present_mode_count{};
 
@@ -316,11 +317,32 @@ namespace MIHYVulkan{
         vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, vulkan.output_surface, &present_mode_count, nullptr);
 
         VkSurfaceCapabilitiesKHR                                surface_capabilities;
-        MIHYCore::DataStruct::MIHYVector<VkSurfaceFormatKHR>    surface_format_vector{4};
-        MIHYCore::DataStruct::MIHYVector<VkPresentModeKHR>      present_mode_vector{4};
+        MIHYCore::DataStruct::MIHYVector<VkSurfaceFormatKHR>    surface_format_vector{surface_format_count};
+        MIHYCore::DataStruct::MIHYVector<VkPresentModeKHR>      present_mode_vector{present_mode_count};
+        surface_format_vector.resize(surface_format_count);
+        present_mode_vector.resize(present_mode_count);
 
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, vulkan.output_surface, &surface_capabilities);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, vulkan.output_surface, &surface_format_count, surface_format_vector.get_memory());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, vulkan.output_surface, &present_mode_count, present_mode_vector.get_memory());
 
+
+        const VkSurfaceFormatKHR    required_surface_format{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+        VkSurfaceFormatKHR          choosen_surface_format{};
+        const VkPresentModeKHR      required_present_mode{VK_PRESENT_MODE_FIFO_KHR};
+        VkPresentModeKHR            choosen_present_mode{};
+
+        if(surface_format_count == 1 && surface_format_vector[0].format == VK_FORMAT_UNDEFINED){
+            choosen_surface_format = required_surface_format;
+            return false;
+        }
+
+        for(UInt32 i = 0; i < surface_format_count; ++i){
+            if(surface_format_vector[i].format == required_surface_format.format && surface_format_vector[i].colorSpace == required_surface_format.colorSpace){
+                choosen_surface_format = required_surface_format;
+                break;
+            }
+        }
 
         return true;
 
